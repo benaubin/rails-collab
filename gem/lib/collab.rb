@@ -1,4 +1,3 @@
-require "collab/config"
 require "collab/railtie"
 
 module Collab
@@ -8,6 +7,7 @@ module Collab
     yield @config
   end
 
+  autoload "Config", "collab/config"
   autoload "Bridge", "collab/bridge"
   autoload "HasCollaborativeDocument", "collab/has_collaborative_document"
   
