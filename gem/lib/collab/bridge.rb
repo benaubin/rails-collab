@@ -31,24 +31,24 @@ module Collab
       @current ||= new
     end
 
-    def call(name, data = nil, schemaName:)
-      req = {name: name, data: data, schemaPackage: ::Collab.config.schema_package, schemaName: schemaName}
+    def call(name, data = nil, schema_name:)
+      req = {name: name, data: data, schemaPackage: ::Collab.config.schema_package, schemaName: schema_name}
       @node.puts(JSON.generate(req))
       res = JSON.parse(@node.gets)
       raise ::Collab::Bridge::JSRuntimeError.new(res["error"]) if res["error"]
       res["result"]
     end
     
-    def apply_transaction(document, transaction, schemaName:)
-      call("applyTransaction", {doc: document, data: transaction}, schemaName: schemaName)
+    def apply_transaction(document, transaction, schema_name:)
+      call("applyTransaction", {doc: document, data: transaction}, schema_name: schemaName)
     end
 
-    def html_to_document(html, schemaName:)
-      call("htmlToDoc", html, schemaName: schemaName)
+    def html_to_document(html, schema_name:)
+      call("htmlToDoc", html, schema_name: schema_name)
     end
 
-    def document_to_html(document, schemaName:)
-      call("docToHtml", document, schemaName: schemaName)
+    def document_to_html(document, schema_name:)
+      call("docToHtml", document, schema_name: schema_name)
     end
   end
 end
