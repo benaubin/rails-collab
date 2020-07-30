@@ -25,12 +25,28 @@ module Collab
       @node = IO.popen(["node", File.expand_path('./js/dist/index.js', __dir__)], "r+")
     end
 
+    def self.current
+      @current ||= new
+    end
+
     def call(name, data = nil, schemaName:)
-      req = {name: name, data: data, schemaPackage: Collab::Config.schema_package, schemaName: schemaName}
+      req = {name: name, data: data, schemaPackage: ::Collab.config.schema_package, schemaName: schemaName}
       @node.puts(JSON.generate(req))
       res = JSON.parse(@node.gets)
-      raise JSRuntimeError.new(res["error"]) if res["error"]
+      raise ::Collab::Bridge::JSRuntimeError.new(res["error"]) if res["error"]
       res["result"]
+    end
+    
+    def apply_transaction(document, transaction, schemaName:)
+      call("applyTransaction", {doc: document, data: transaction}, schemaName: schemaName)
+    end
+
+    def html_to_document(html, schemaName:)
+      call("htmlToDoc", html, schemaName: schemaName)
+    end
+
+    def document_to_html(document, schemaName:)
+      call("docToHtml", document, schemaName: schemaName)
     end
   end
 end

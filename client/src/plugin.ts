@@ -2,7 +2,7 @@ import type { Cable } from "actioncable";
 import type { Schema } from "prosemirror-model";
 import throttle from "lodash/throttle";
 import { Plugin, PluginSpec } from "prosemirror-state";
-import CollaborationConnection from "./connection";
+import CollaborationConnection, { SubscriptionParams } from "./connection";
 import {
   applyReceivedTransactions,
   readyStepsForSending,
@@ -20,13 +20,13 @@ export interface PluginState<S extends Schema = Schema> {
 }
 
 export function railsCollab<S extends Schema>({
+  params,
   startingVersion,
-  documentId,
   cable,
   throttleMs = 2000,
 }: {
+  params: SubscriptionParams;
   startingVersion: number;
-  documentId: string;
   cable: Cable;
   throttleMs?: number;
 }) {
@@ -51,7 +51,7 @@ export function railsCollab<S extends Schema>({
     },
     view(view) {
       const connection = new CollaborationConnection(
-        documentId,
+        params,
         cable,
         startingVersion,
         (batch) => {

@@ -7,31 +7,32 @@ export type ServerTransaction = {
   ref?: string | null;
 };
 
+export interface SubscriptionParams {
+  channel?: string;
+  startingVersion?: number;
+}
+
 /** Handles the networking for collaboration */
 export default class CollaborationConnection {
-  cable: Cable;
-  documentId: string;
   channel?: Channel;
 
   constructor(
-    documentId: string,
+    /** Params passed to the cable and passed to find_document_for_subscribe. You can override channel here */
+    params: SubscriptionParams,
     cable: Cable,
     startingVersion: number,
     onTransactionBatch: (batch: ServerTransaction[]) => void
   ) {
-    this.documentId = documentId;
-    this.cable = cable;
-
     const transactionQueue = new ReceivedTransactionQueue(
       startingVersion,
       onTransactionBatch
     );
 
-    this.channel = this.cable.subscriptions.create(
+    this.channel = cable.subscriptions.create(
       {
-        channel: "CollaborativeDocumentChannel",
-        id: this.documentId,
-        after_version: startingVersion,
+        channel: "Collab::DocumentChannel",
+        startingVersion,
+        ...params,
       },
       {
         received: (tr) => transactionQueue.receive(tr),
@@ -51,6 +52,6 @@ export default class CollaborationConnection {
         message: "Tried to submit steps before starting subscription",
       };
 
-    this.channel.perform("submit_transaction", data);
+    this.channel.perform("submit", data);
   }
 }
