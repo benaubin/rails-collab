@@ -1,0 +1,1 @@
+export { railsCollab } from "./plugin";

@@ -9,3 +9,8 @@
 
 # rspec failure tracking
 .rspec_status
+
+
+client/node_modules/
+client/dist/
+client/yarn.lock
