@@ -1,8 +1,10 @@
 {
   "name": "rails-collab",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Client for use with the collab gem",
   "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "sideEffects": [],
   "scripts": {
     "build": "rm -rf dist && rollup -c"
   },
