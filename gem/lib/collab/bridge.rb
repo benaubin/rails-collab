@@ -23,7 +23,7 @@ module Collab
     
     def initialize
       @node = Dir.chdir(Rails.root) do
-        IO.popen(["node", "-e", %q{"require('rails-collab-server')"}], "r+")
+        IO.popen(["node", "-e", "require('rails-collab-server')"], "r+")
       end
     end
 
