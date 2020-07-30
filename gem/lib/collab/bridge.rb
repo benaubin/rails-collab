@@ -40,7 +40,7 @@ module Collab
     end
     
     def apply_transaction(document, transaction, schema_name:)
-      call("applyTransaction", {doc: document, data: transaction}, schema_name: schemaName)
+      call("applyTransaction", {doc: document, data: transaction}, schema_name: schema_name)
     end
 
     def html_to_document(html, schema_name:)

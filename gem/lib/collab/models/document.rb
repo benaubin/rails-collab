@@ -29,8 +29,6 @@ module Collab
     end
 
     def from_html(html)
-      raise "cannot override a persisted document" if self.persisted?
-      
       self.document = ::Collab::Bridge.current.html_to_document(html, schema_name: schema_name)
     end
 
