@@ -2,7 +2,7 @@ require "rails/generators"
 require "rails/generators/active_record"
 
 module Collab
-  class Install < Rails::Generators::NamedBase
+  class Install < Rails::Generators::Base
     include ::Rails::Generators::Migration
 
     desc "Creates the necessary migrations and initializer for the gem"
