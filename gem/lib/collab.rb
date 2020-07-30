@@ -1,5 +1,3 @@
-require "collab/railtie"
-
 module Collab
   def self.config
     @config ||= Collab::Config.new
@@ -9,6 +7,7 @@ module Collab
 
   autoload "Config", "collab/config"
   autoload "Bridge", "collab/bridge"
+  autoload "Railtie", "collab/railtie"
   autoload "HasCollaborativeDocument", "collab/has_collaborative_document"
   
   module Models
