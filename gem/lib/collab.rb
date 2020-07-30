@@ -2,7 +2,7 @@ require "collab/config"
 require "collab/railtie"
 
 module Collab
-  def config
+  def self.config
     @config ||= Collab::Config.new
     return @config unless block_given?
     yield @config
