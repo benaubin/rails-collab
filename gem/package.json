@@ -1,0 +1,31 @@
+{
+  "name": "rails-collab-server",
+  "version": "0.1.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "ncc build lib/collab/js/src/index.ts -o lib/collab/js/dist -s -e prosemirror-model -e prosemirror-transform"
+  },
+  "author": "Ben Aubin",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/preset-typescript": "^7.10.4",
+    "@types/jsdom": "^16.2.3",
+    "@types/node": "^14.0.27",
+    "@types/prosemirror-model": "^1.7.2",
+    "@types/prosemirror-transform": "^1.1.1",
+    "@zeit/ncc": "^0.22.3",
+    "prosemirror-schema-basic": "^1.1.2",
+    "prosemirror-model": "^1.11.0",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7"
+  },
+  "dependencies": {
+    "jsdom": "^16.3.0",
+    "source-map-support": "^0.5.19"
+  },
+  "peerDependencies": {
+    "prosemirror-transform": "^1.2.7",
+    "prosemirror-model": "^1.11.0"
+  }
+}
