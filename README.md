@@ -1,17 +1,102 @@
 # Collab
 
-Collaborative document editing for Ruby on Rails using Prosemirror.
+Real-time collaborative document editing for Ruby on Rails using ActionCable & Prosemirror based on operational transforms.
 
-## Installation
+## How it works
 
-```sh
-bundle add collab # rails
-yarn add rails-collab # client javascript
+The collab gem exposes an ActionCable channel (`Collab::DocumentChannel`) enabling users to start a real-time editing session.
+A client may submit one or many steps in a DocumentTransaction to the server, alongside a reference for processing. The gem
+attempts to apply the transaction to the document in a background job (`Collab::DocumentTransactionJob`). The job first checks
+that the operation applies to the current version of the document, and if so, uses a NodeJS child process running ProseMirror
+and JSDom to apply the transaction. If successful, the document is saved and the transaction is broadcasted to clients.
+
+## Requirements
+
+- ActionCable
+- NodeJS in your Rails environment, with a `node` executible on the `$PATH`
+
+## Getting started
+
+1. Expose your [ProseMirror schema] as a NodeJS package (use the package registry of your choice or a private Git repository)
+   so that it can be accessed either client-side or server-side.
+
+```js
+module.exports.plainText = new Schema({
+  nodes: {
+    text: {},
+    doc: { content: "text*" },
+  },
+});
 ```
 
-## Usage
+2. Inside your Rails app, install the gem and the npm packages necessary for applying document transforms server-side
 
-TODO: Write usage instructions here
+```sh
+bundle add collab
+yarn add rails-collab-server prosemirror-model prosemirror-transform [your-schema-package]
+```
+
+3. Generate the initalizer and migration
+
+```sh
+rails g collab:install
+```
+
+4. Configure the gem in `config/initializers.rb`. Make sure to set `schema_package` to the name of your schema package.
+
+5. Run `rails db:migrate`
+
+6. Add `HasCollaborativeDocument` to a model
+
+```rb
+class BlogPost < ApplicationRecord
+  include Collab::HasCollaborativeDocument
+
+  has_collaborative_document :body,
+                              schema: "plainText", # this is the name of the export from your schema package
+                              blank_document: {"type"=>"doc", "content"=>[{"type"=>"text", "text"=>""}]} # the document used for version 0
+
+end
+```
+
+7. Install the client library
+
+```sh
+yarn add rails-collab [your-schema-package]
+```
+
+8. Add the railsCollab plugin to your ProseMirror view:
+
+```js
+import { EditorView } from "prosemirror-view";
+import { EditorState } from "prosemirror-state";
+import { railsCollab } from "rails-collab";
+import { plainText } from "[your-schema-package]";
+
+const cable = ActionCable.createConsumer("ws://cable.example.com");
+
+const originalDocument = blogPost.body; // from ERB, <%= raw json_escape(@blog_post.body.to_json) %>
+
+const target = document.getElementById("editor-view");
+
+const view = new EditorView(target, {
+  state: EditorState.create({
+    doc: plainText.nodeFromJSON(originalDocument.document),
+    plugins: [
+      railsCollab({
+        cable,
+        startingVersion: originalDocument.version,
+        params: { document_id: originalDocument.id },
+      }),
+    ],
+  }),
+});
+
+// later, to unsubscribe & destroy the editor:
+// view.destroy();
+```
+
+9. 🎉 You're done! Start collaborating.
 
 ## Development
 
@@ -21,12 +106,15 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/collab. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/collab/blob/master/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/benaubin/collab. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct].
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+The gem is available as open source under the terms of the [MIT License](LICENSE).
 
 ## Code of Conduct
 
-Everyone interacting in the Collab project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/collab/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the Collab project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct].
+
+[prosemirror schema]: https://prosemirror.net/examples/schema/
+[code of conduct]: https://github.com/benaubin/collab/blob/master/CODE_OF_CONDUCT.md

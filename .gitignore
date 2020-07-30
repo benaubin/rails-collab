@@ -12,6 +12,6 @@ gem/test/dummy/log/*.log
 gem/test/dummy/storage/
 gem/test/dummy/tmp/
 
-gem/lib/collab/js/dist
-gem/node_modules
-gem/yarn*.log
+js/dist
+js/node_modules
+js/yarn*.log

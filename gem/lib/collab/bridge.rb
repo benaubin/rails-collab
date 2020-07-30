@@ -22,7 +22,9 @@ module Collab
     end
     
     def initialize
-      @node = IO.popen(["node", File.expand_path('./js/dist/index.js', __dir__)], "r+")
+      @node = Dir.chdir(Rails.root) do
+        IO.popen(["node", "-e", %q{"require('rails-collab-server')"}], "r+")
+      end
     end
 
     def self.current

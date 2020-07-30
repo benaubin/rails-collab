@@ -56,6 +56,10 @@ module Collab
       end
     end
 
+    def as_json
+      {id: id, document: document, version: self.document_version}
+    end
+
     private
 
     def nullify_serialized_html

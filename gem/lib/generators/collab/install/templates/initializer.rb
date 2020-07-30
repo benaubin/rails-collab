@@ -1,6 +1,7 @@
 # Configuration for the collab gem
 Collab.config do |c|
-  # The NPM package containing the document schema
+  # The NPM package containing the document schema. This will be require()d from your Rails directory
+  # To use a Git repo, see https://docs.npmjs.com/files/package.json#git-urls-as-dependencies
   c.schema_package = "prosemirror-schema-basic"
   # How many old transactions to keep per document
   c.max_transactions = 250
@@ -17,9 +18,8 @@ Collab.config do |c|
   # You should throw an error if unauthorized
   # The block is executed in the instance of the channel
   c.authorize_update_document do |document, transaction_data|
-    raise "unauthorization not implemented"
+    # raise "authorization failed"
   end
-
 
   # ActionJob settings
   # ==================

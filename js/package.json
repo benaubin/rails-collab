@@ -4,7 +4,8 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "build": "ncc build lib/collab/js/src/index.ts -o lib/collab/js/dist -s -e prosemirror-model -e prosemirror-transform"
+    "prepare": "npm run build",
+    "build": "ncc build src/index.ts -o dist -s -e prosemirror-model -e prosemirror-transform"
   },
   "author": "Ben Aubin",
   "license": "MIT",
