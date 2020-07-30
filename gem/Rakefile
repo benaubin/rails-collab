@@ -25,9 +25,3 @@ Rake::TestTask.new(:test) do |t|
 end
 
 task default: :test
-
-task :build_js do 
-  sh("npm run build")
-end
-
-task build: :build_js
