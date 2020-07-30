@@ -1,16 +1,13 @@
-/.bundle/
-/.yardoc
-/_yardoc/
-/coverage/
-/doc/
-/pkg/
-/spec/reports/
-/tmp/
-
-# rspec failure tracking
-.rspec_status
-
-
 client/node_modules/
 client/dist/
 client/yarn.lock
+
+gem/.bundle/
+gem/log/*.log
+gem/pkg/
+gem/test/dummy/db/*.sqlite3
+gem/test/dummy/db/*.sqlite3-journal
+gem/test/dummy/db/*.sqlite3-*
+gem/test/dummy/log/*.log
+gem/test/dummy/storage/
+gem/test/dummy/tmp/
