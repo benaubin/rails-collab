@@ -17,7 +17,7 @@ class CreateCollabTables < ActiveRecord::Migration[6.0]
     end
 
     create_table :collab_document_transactions, id: false do |t|
-      t.references :document, null: false, foreign_key: {to_table: :collaborative_documents}, type: :uuid, index: false
+      t.references :document, null: false, foreign_key: {to_table: :collab_documents}, type: :uuid, index: false
 
       t.jsonb :steps, array: true, null: false
       t.integer :document_version, null: false
