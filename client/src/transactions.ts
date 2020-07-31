@@ -1,11 +1,16 @@
-import { rebaseSteps } from "prosemirror-collab";
+import { rebaseSteps } from "./rebaseable";
 import { Schema } from "prosemirror-model";
 import { EditorState, TextSelection, Transaction } from "prosemirror-state";
 import { Step } from "prosemirror-transform";
 import key from "./plugin-key";
-import { v4 as uuidv4 } from "uuid";
 import type { ServerTransaction } from "./connection";
 import type { PluginState } from "./plugin";
+
+function randomRef() {
+  const bytes = new Uint32Array(2);
+  window.crypto.getRandomValues(bytes);
+  return bytes.reduce((str, byte) => str + byte.toString(36), "");
+}
 
 /** a helper function to make a transaction which will modify the plugin state */
 function makeTransaction<S extends Schema>(editorState: EditorState<S>) {
@@ -83,7 +88,7 @@ export function readyStepsForSending<S extends Schema>(
   if (inflight) return false;
   if (localSteps.length === 0) return null;
 
-  const ref = uuidv4();
+  const ref = randomRef();
 
   const sendableSteps: Step<S>[] = [];
   let prevStep = localSteps[0].step;
