@@ -33,7 +33,7 @@ module Collab
     end
 
     def perform_transaction_later(data)
-      ::Collab::DocumentTransactionJob.perform_later(@document, data)
+      ::Collab::DocumentTransactionJob.perform_later(self, data)
     end
 
     def apply_transaction_now(data)
