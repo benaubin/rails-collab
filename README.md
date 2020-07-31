@@ -4,7 +4,7 @@ Real-time collaborative document editing for Ruby on Rails using ActionCable & P
 
 ## How it works
 
-The collab gem exposes an ActionCable channel (`Collab::DocumentChannel`) enabling users to start a real-time editing session.
+The collab gem exposes an ActionCable channel (`CollabDocumentChannel`) enabling users to start a real-time editing session.
 A client may submit one or many steps in a DocumentTransaction to the server, alongside a reference for processing. The gem
 attempts to apply the transaction to the document in a background job (`Collab::DocumentTransactionJob`). The job first checks
 that the operation applies to the current version of the document, and if so, uses a NodeJS child process running ProseMirror
