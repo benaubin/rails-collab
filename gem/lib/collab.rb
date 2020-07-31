@@ -2,9 +2,13 @@ require "collab/engine"
 
 module Collab
   def self.config
-    @config ||= Collab::Config.new
-    return @config unless block_given?
-    yield @config
+    if block_given?
+      yield(@config ||= Collab::Config.new)
+    else
+      raise "[Collab] Missing configuration: Have you run `rails g collab:install` yet?" unless @config
+      @config.freeze unless @config.frozen?
+      @config
+    end
   end
 
   autoload "Channel", "collab/channel"
