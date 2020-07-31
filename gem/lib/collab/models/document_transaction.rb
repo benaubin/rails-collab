@@ -16,7 +16,7 @@ module Collab
     end
 
     def broadcast
-      ::Collab::DocumentChannel.broadcast_to(document, as_json)
+      ::Collab.config.channel_name.constantize.broadcast_to(document, as_json)
     end
   end
 end

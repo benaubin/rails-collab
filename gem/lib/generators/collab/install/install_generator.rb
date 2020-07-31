@@ -22,6 +22,8 @@ module Collab
         "db/migrate/create_collab_tables.rb",
       )
       
+      copy_file "channel.rb", "app/channels/collab_document_channel.rb"
+
       copy_file "initializer.rb", "config/initializers/collab.rb"
     end
   end

@@ -15,7 +15,7 @@ export interface SubscriptionParams {
 
 /** Handles the networking for collaboration */
 export default class CollaborationConnection {
-  channel?: Channel;
+  channel: Channel;
 
   constructor(
     /** Params passed to the cable and passed to find_document_for_subscribe. You can override channel here */
@@ -31,7 +31,7 @@ export default class CollaborationConnection {
 
     this.channel = cable.subscriptions.create(
       {
-        channel: "Collab::DocumentChannel",
+        channel: "CollabDocumentChannel",
         startingVersion,
         ...params,
       },
@@ -47,12 +47,6 @@ export default class CollaborationConnection {
 
   /** This needs to be throttled to prevent overwhelming the server, or running into (very tricky) potential silent rate-limiting. */
   submitTransaction(data: ServerTransaction) {
-    if (this.channel == null)
-      throw {
-        name: "CollabInvariant",
-        message: "Tried to submit steps before starting subscription",
-      };
-
     this.channel.perform("submit", data);
   }
 }

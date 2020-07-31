@@ -6,20 +6,11 @@ Collab.config do |c|
   # How many old transactions to keep per document
   c.max_transactions = 250
 
-  # Handlers
-  # ========
-  # Find a the document to subscribe to based on the params passed to the channel
-  # Authorization may also be performed here (raise an error)
-  # The block is executed in the scope of the ActionCable channel within #subscribe
-  c.find_document_for_subscribe do
-    Collab::Models::Document.find params[:document_id]
-  end
-  # Called when a client submits a transaction in order to update a document
-  # You should throw an error if unauthorized
-  # The block is executed in the instance of the channel
-  c.authorize_update_document do |document, transaction_data|
-    # raise "authorization failed"
-  end
+  # ActionCable settings
+  # ====================
+  # The document channel to use for collaboration
+  # If you change this, you must pass {channel: "[ChannelName]"} as subscription params to the Javascript client
+  c.channel_name = "::CollabDocumentChannel"
 
   # ActionJob settings
   # ==================
