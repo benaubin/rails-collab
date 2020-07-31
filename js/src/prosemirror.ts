@@ -9,39 +9,29 @@ import { JSDOM } from "jsdom";
 
 export type JSONSerializable = { [key: string]: unknown };
 
-interface TransactionData extends JSONSerializable {
+interface CommitData extends JSONSerializable {
   steps: JSONSerializable[];
 }
 
 const { document } = new JSDOM().window;
 
 export default function schemaFunctions<S extends Schema>(schema: S) {
-  function _applyTransaction(doc: Node<S>, transactionData: TransactionData) {
-    for (const stepData of transactionData.steps) {
-      const step = Step.fromJSON(schema, stepData);
-      const result = step.apply(doc);
-
-      if (result.failed) return false;
-      if (result.doc) doc = result.doc;
-    }
-
-    return { doc };
-  }
-
   return {
-    applyTransaction({
-      doc,
-      data,
-    }: {
+    applyCommit(data: {
       doc: JSONSerializable;
-      data: TransactionData;
+      commit: CommitData;
     }): JSONSerializable | false {
-      const originalDoc = Node.fromJSON(schema, doc);
+      let doc = Node.fromJSON(schema, data.doc);
 
-      const res = _applyTransaction(originalDoc, data);
-      if (res === false) return false;
+      for (const stepData of data.commit.steps) {
+        const step = Step.fromJSON(schema, stepData);
+        const result = step.apply(doc);
 
-      return { doc: res.doc.toJSON() };
+        if (result.failed) return false;
+        if (result.doc) doc = result.doc;
+      }
+
+      return { doc: doc.toJSON() };
     },
 
     htmlToDoc(html: string): JSONSerializable {

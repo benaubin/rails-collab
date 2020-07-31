@@ -19,6 +19,6 @@ module Collab
   module Models
     autoload "Base", "collab/models/base"
     autoload "Document", "collab/models/document"
-    autoload "DocumentTransaction", "collab/models/document_transaction"
+    autoload "Commit", "collab/models/commit"
   end
 end

@@ -10,19 +10,20 @@ module Collab
 
       stream_for document
       
-      transactions = document.transactions
-                              .where("document_version > ?", starting_version)
-                              .order(document_version: :asc)
-                              .load
+      commits = document.commits
+                        .where("document_version > ?", starting_version)
+                        .order(document_version: :asc)
+                        .load
               
-      raise "invalid version" unless transactions.first.document_version == (starting_version + 1) unless transactions.empty?
-
-      transactions.lazy.map(&:as_json).each(method(:transmit))
+      unless commits.empty?
+        raise "invalid version" unless commits.first.document_version == (starting_version + 1)
+        commits.lazy.map(&:as_json).each(method(:transmit))
+      end
     end
 
-    def submit(data)
-      authorize_submit!(data)
-      document.perform_transaction_later(data)
+    def commit(data)
+      authorize_commit!(data)
+      document.commit_later(data)
     end
 
     def unsubscribed

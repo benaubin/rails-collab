@@ -17,8 +17,10 @@ module Collab
     end
 
     def copy_files
+      @primary_key_type = Rails.application.config.generators.active_record[:primary_key_type]
+
       migration_template(
-        "create_collab_tables.rb",
+        "create_collab_tables.rb.erb",
         "db/migrate/create_collab_tables.rb",
       )
       
