@@ -1,4 +1,4 @@
-require "collab/railtie"
+require "collab/engine"
 
 module Collab
   def self.config

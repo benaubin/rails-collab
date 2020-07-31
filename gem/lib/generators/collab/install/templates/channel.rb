@@ -13,7 +13,7 @@ class CollabDocumentChannel < ApplicationCable::Channel
 
   # Called when a client submits a transaction in order to update a document
   # You should throw an error if unauthorized
-  def authorize_submit!
+  def authorize_submit!(data)
     raise "authorization failed"
   end
 end
