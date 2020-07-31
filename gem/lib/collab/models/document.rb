@@ -15,7 +15,7 @@ module Collab
       return serialized_html if serialized_html
 
       serialized_version = self.document_version
-      ::Collab::Bridge.current.document_to_html(self.content, schema_name: schema_name).tap do |serialized_html|
+      ::Collab::JS.document_to_html(self.content, schema_name: schema_name).tap do |serialized_html|
         Thread.new do # use a thread to prevent deadlocks and avoid incuring the cost of an inline-write
           self.with_lock do
             self.update_attribute(:serialized_html, serialized_html) if serialized_version == self.version and self.serialized_html.nil?
@@ -25,7 +25,7 @@ module Collab
     end
 
     def from_html(html)
-      self.content = ::Collab::Bridge.current.html_to_document(html, schema_name: schema_name)
+      self.content = ::Collab::JS.html_to_document(html, schema_name: schema_name)
     end
 
     def commit_later(data)

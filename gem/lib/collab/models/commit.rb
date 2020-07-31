@@ -36,7 +36,7 @@ module Collab
       self.document.with_lock do
         return false if self.document.document_version != self.document_version
         
-        return false unless result = ::Collab::Bridge.current.apply_commit(self.document, self.to_json, schema_name: self.document.schema_name)
+        return false unless result = ::Collab::JS.apply_commit(self.document, self.to_json, schema_name: self.document.schema_name)
         
         self.document.document = result["doc"]
         self.document.document_version = self.document_version

@@ -4,27 +4,22 @@ Collab.config do |c|
   # To use a Git repo, see https://docs.npmjs.com/files/package.json#git-urls-as-dependencies
   c.schema_package = "prosemirror-schema-basic"
   # How many old transactions to keep per document
-  c.max_transactions = 250
+  c.max_commit_history_length = 250
+  # How many NodeJS child processes to run (shared among all threads)
+  c.num_js_processes = 3
 
-  # ActionCable settings
-  # ====================
   # The document channel to use for collaboration
-  # If you change this, you must pass {channel: "[ChannelName]"} as subscription params to the Javascript client
+  # If you change this, you must pass the value as {channel: "[ChannelName]"} in the params from the ActionCable client
   c.channel = "CollabDocumentChannel"
 
-  # ActionJob settings
-  # ==================
-  # The base job class to use
-  c.application_job = "ApplicationJob"
-  # The commit job to use
-  c.commit_job = "Collab::CommitJob"
+  # The class which jobs in the gem should inherit from
+  c.base_job = "ApplicationJob"
+  # The jobs to use, if you want to implement your own jobs
+  # c.commit_job = "..."
 
-
-  # ActiveRecord settings
-  # =====================
   # The class which models in the gem should inherit from
-  c.application_record = "ApplicationRecord"
-  # If you want to use your own document or commit model, 
-  c.document_model = "Collab::Models::Document"
-  c.commit_model = "Collab::Models::Commit"
+  c.base_record = "ApplicationRecord"
+  # The models to use, if you want to implement your own models
+  # c.document_model = "..."
+  # c.commit_model = "..."
 end
