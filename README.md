@@ -59,13 +59,15 @@ class BlogPost < ApplicationRecord
 end
 ```
 
-7. Install the client library
+7. Add authorization logic to `app/channels/collab_document_channel.rb`
+
+8. Install the client library
 
 ```sh
 yarn add rails-collab [your-schema-package]
 ```
 
-8. Add the railsCollab plugin to your ProseMirror view:
+9. Add the railsCollab plugin to your ProseMirror view:
 
 ```js
 import { EditorView } from "prosemirror-view";
@@ -96,7 +98,7 @@ const view = new EditorView(target, {
 // view.destroy();
 ```
 
-9. 🎉 You're done! Start collaborating.
+10. 🎉 You're done! Start collaborating.
 
 ## Development
 
