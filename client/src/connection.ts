@@ -10,6 +10,7 @@ export type ServerTransaction = {
 export interface SubscriptionParams {
   channel?: string;
   startingVersion?: number;
+  [k: string]: unknown;
 }
 
 /** Handles the networking for collaboration */
