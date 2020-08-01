@@ -6112,10 +6112,10 @@ rails-collab-server@^0.3.0:
     jsdom "^16.3.0"
     source-map-support "^0.5.19"
 
-rails-collab@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/rails-collab/-/rails-collab-0.3.0.tgz#3c953e0c510d4bc89652bea0fe5e73074cfb238c"
-  integrity sha512-KIXVLcTNI+OSxIxQm7Fh6LiDCWBvkJxL6IysSH/2GmMrYBCWVYMHVYRkUJvmStoJzXd6mw9KBYSMKGatpADYxQ==
+rails-collab@^0.3.2:
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/rails-collab/-/rails-collab-0.3.2.tgz#64d5a816119eee372c7f7511ce2515645e836f77"
+  integrity sha512-qWBiB6N3XVMlF+bI/Guy4AAsUjXs7zqd5db/Nh0tfKWZ/YMPebmCR9D9vRzUIIEizdgZDHHy/UFOkhbKgnDa3g==
   dependencies:
     lodash "^4.17.19"
 

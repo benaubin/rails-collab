@@ -6,7 +6,7 @@
     "prosemirror-schema-basic": "^1.1.2",
     "prosemirror-state": "^1.3.3",
     "prosemirror-view": "^1.15.2",
-    "rails-collab": "^0.3.0",
+    "rails-collab": "^0.3.2",
     "rails-collab-server": "^0.3.0"
   },
   "devDependencies": {

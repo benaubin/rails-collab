@@ -88,11 +88,11 @@ export function makeCommit<S extends Schema>(
   const { inflightSteps } = pluginState;
 
   if (inflightSteps.length === 0) return;
-  const compactedSteps = compactSteps(inflightSteps.map(({ step }) => step));
 
   const ref = randomRef();
-
   pluginState.inflightCommits[ref] = inflightSteps.length;
+
+  const compactedSteps = compactSteps(inflightSteps.map(({ step }) => step));
 
   return {
     v: pluginState.syncedVersion + 1,
