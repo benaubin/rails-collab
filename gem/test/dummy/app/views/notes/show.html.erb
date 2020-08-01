@@ -5,5 +5,4 @@
 <div class="editor" data-collaborative-editor="<%= json_escape(@note.body.as_json.to_json) %>">
 </div>
 
-<%= link_to 'Edit', edit_note_path(@note) %> |
 <%= link_to 'Back', notes_path %>

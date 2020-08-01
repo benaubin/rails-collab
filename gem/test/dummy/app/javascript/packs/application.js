@@ -1,15 +1,14 @@
-//= require rails-ujs
-//= require activestorage
-
+import ActionCable from "actioncable";
 import "core-js/stable";
-import "regenerator-runtime/runtime";
-
+import { exampleSetup } from "prosemirror-example-setup";
+import "prosemirror-example-setup/style/style.css";
+import "prosemirror-menu/style/menu.css";
+import { schema } from "prosemirror-schema-basic";
+import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import "prosemirror-view/style/prosemirror.css";
-import { EditorState } from "prosemirror-state";
 import { railsCollab } from "rails-collab";
-import { schema } from "prosemirror-schema-basic";
-import ActionCable from "actioncable";
+import "regenerator-runtime/runtime";
 
 const cable = ActionCable.createConsumer();
 
@@ -23,6 +22,7 @@ function loadEditor() {
       state: EditorState.create({
         doc: schema.nodeFromJSON(data.content),
         plugins: [
+          ...exampleSetup({ schema }),
           railsCollab({
             cable,
             startingVersion: data.version,
@@ -33,14 +33,4 @@ function loadEditor() {
     });
   }
 }
-
-addEventListener("turbolinks:load", () => {
-  loadEditor();
-
-  // addEventListener("turbolinks:before-render", function beforeRender() {
-  //   removeEventListener("turbolinks:before-render", beforeRender);
-  //   view.destroy();
-  // });
-});
-
 addEventListener("load", loadEditor);

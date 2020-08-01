@@ -12,9 +12,8 @@
   <tbody>
     <% @notes.each do |note| %>
       <tr>
-        <td><%= link_to 'Show', note %></td>
-        <td><%= link_to 'Edit', edit_note_path(note) %></td>
-        <td><%= link_to 'Destroy', note, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <td><%= link_to "Note #{note.id}", note %></td>
+        <td><%= button_to 'Destroy', note, method: :delete, data: { confirm: 'Are you sure?' } %></td>
       </tr>
     <% end %>
   </tbody>
@@ -22,4 +21,4 @@
 
 <br>
 
-<%= link_to 'New Note', new_note_path %>
+<%= button_to 'Create Note', notes_path, method: :post %>
