@@ -18,7 +18,7 @@ function loadEditor() {
   for (const editorEl of editors) {
     const data = JSON.parse(editorEl.dataset.collaborativeEditor);
 
-    const view = new EditorView(editorEl, {
+    new EditorView(editorEl, {
       state: EditorState.create({
         doc: schema.nodeFromJSON(data.content),
         plugins: [
@@ -27,6 +27,7 @@ function loadEditor() {
             cable,
             startingVersion: data.version,
             params: { document_id: data.id },
+            throttleMs: 250,
           }),
         ],
       }),

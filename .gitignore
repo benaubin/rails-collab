@@ -15,6 +15,8 @@ gem/test/dummy/tmp/
 gem/test/dummy/.byebug_history
 gem/test/dummy/node_modules
 gem/test/dummy/public/packs
+gem/test/dummy/public/assets
+gem/test/dummy/config/credentials
 
 js/dist
 js/node_modules
