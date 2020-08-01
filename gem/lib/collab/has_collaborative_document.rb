@@ -8,7 +8,7 @@ module Collab
 
         define_method attach_as do
           super() || begin
-            document = self.__send__("build_#{attach_as}", schema_name: schema, document: blank_document.dup)
+            document = self.__send__("build_#{attach_as}", schema_name: schema, content: blank_document.dup)
             document.save!
             document
           end
