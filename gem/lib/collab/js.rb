@@ -22,7 +22,7 @@ module Collab
       end
 
       def call(name, data = nil, schema_name:)
-        with_js { |js| js.call(name, *arguments, &block) }
+        with_js { |js| js.call(name, data, schema_name: schema_name) }
       end
       
       def apply_commit(document, commit, schema_name:)
