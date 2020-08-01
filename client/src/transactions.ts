@@ -1,10 +1,13 @@
-import { rebaseSteps } from "./rebaseable";
-import { Schema } from "prosemirror-model";
-import { EditorState, TextSelection, Transaction } from "prosemirror-state";
+import type { Schema } from "prosemirror-model";
+import type { EditorState, Transaction } from "prosemirror-state";
+import { TextSelection } from "prosemirror-state";
 import { Step } from "prosemirror-transform";
-import key from "./plugin-key";
-import type { ServerTransaction } from "./connection";
+import flatMap from "lodash/flatMap";
+import { compactRebaseable, compactSteps } from "./compact-steps";
+import type { Commit } from "./connection";
 import type { PluginState } from "./plugin";
+import key from "./plugin-key";
+import { rebaseSteps } from "./rebaseable";
 
 function randomRef() {
   const bytes = new Uint32Array(2);
@@ -21,40 +24,37 @@ function makeTransaction<S extends Schema>(editorState: EditorState<S>) {
   return [tr, pluginState, nextPluginState] as const;
 }
 
-export function applyReceivedTransactions<S extends Schema>(
+export function applyCommits<S extends Schema>(
   editorState: EditorState<S>,
-  received: ServerTransaction[]
+  commits: Commit[]
 ): Transaction<S> {
-  const [tr, { inflight, localSteps }, pluginState] = makeTransaction(
-    editorState
-  );
+  const [tr, { inflightCommits }, newState] = makeTransaction(editorState);
 
   tr.setMeta("addToHistory", false);
 
-  pluginState.syncedVersion += received.length;
+  newState.syncedVersion += commits.length;
+  newState.inflightCommits = {}; // all inflight commits were either confirmed or rejected (bad version)
 
-  if (inflight) {
-    // our transaction is no longer going to be inflight - either because it was confirmed or someone else got their transaction in first
-    pluginState.inflight = undefined;
-
-    // due to symantics, we can only have one transaction inflight at a time, and only the first transaction we receive could be ours
-    if (inflight.ref == received[0].ref) {
-      // no need to process the transaction - this is confirmation is was received
-      if (received.length == 1) return tr;
-      else received.unshift();
-    } else {
-      // uh oh, our transaction wasn't processed and is no longer inflight, move to local
-      pluginState.localSteps = inflight.steps.concat(localSteps);
-    }
+  const { ref } = commits[0]; // only the first commit could be from this client as other commits refer to a newer version of the document
+  const commitStepsLen = ref == null ? undefined : inflightCommits[ref];
+  if (typeof commitStepsLen !== "undefined") {
+    newState.inflightSteps = newState.inflightSteps.slice(commitStepsLen);
+    commits.shift();
   }
 
-  const receivedSteps = received.reduce<Step<S>[]>(
-    (arr, { steps }) =>
-      arr.concat(steps.map((step) => Step.fromJSON(editorState.schema, step))),
-    []
+  const remoteSteps = flatMap(commits, ({ steps }) =>
+    steps.map((step) => Step.fromJSON(editorState.schema, step))
   );
 
-  pluginState.localSteps = rebaseSteps(localSteps, receivedSteps, tr);
+  if (newState.inflightSteps.length == 0) {
+    for (const step of remoteSteps) tr.step(step);
+  } else {
+    newState.inflightSteps = rebaseSteps(
+      newState.inflightSteps,
+      remoteSteps,
+      tr
+    );
+  }
 
   // prosemirror-collab's mapselectionbackward
   tr.setSelection(
@@ -70,53 +70,33 @@ export function applyReceivedTransactions<S extends Schema>(
 }
 
 /**
- * Readys steps for sending
- *
- * @return `false` if a transaction is already inflight
- * @returns `null` if no steps need sending
- * @returns `[transaction, sendable]` use the first transaction to update the editor state (to mark steps inflight), and send the second to the server
+ * Makes a commit out of steps available for sending
  */
-export function readyStepsForSending<S extends Schema>(
+export function makeCommit<S extends Schema>(
   editorState: EditorState<S>
-): [Transaction<S>, ServerTransaction] | false | null {
-  const [
-    tr,
-    { localSteps, inflight, syncedVersion },
-    pluginState,
-  ] = makeTransaction(editorState);
+): Commit | undefined {
+  const pluginState: PluginState<S> = key.getState(editorState);
 
-  if (inflight) return false;
-  if (localSteps.length === 0) return null;
+  if (pluginState.localSteps.length > 0) {
+    const compactedSteps = compactRebaseable(pluginState.localSteps);
+    pluginState.inflightSteps = pluginState.inflightSteps.concat(
+      compactedSteps
+    );
+    pluginState.localSteps = [];
+  }
+
+  const { inflightSteps } = pluginState;
+
+  if (inflightSteps.length === 0) return;
+  const compactedSteps = compactSteps(inflightSteps.map(({ step }) => step));
 
   const ref = randomRef();
 
-  const sendableSteps: Step<S>[] = [];
-  let prevStep = localSteps[0].step;
+  pluginState.inflightCommits[ref] = inflightSteps.length;
 
-  for (let i = 1; i < localSteps.length; i++) {
-    const step = localSteps[i].step;
-    const merged = prevStep.merge(step);
-    if (merged) {
-      prevStep = merged;
-    } else {
-      sendableSteps.push(prevStep);
-      prevStep = step;
-    }
-  }
-
-  sendableSteps.push(prevStep);
-
-  const sendable = {
-    v: syncedVersion + 1,
-    steps: sendableSteps.map((s) => s.toJSON()),
+  return {
+    v: pluginState.syncedVersion + 1,
+    steps: compactedSteps.map((s) => s.toJSON()),
     ref,
   };
-
-  pluginState.inflight = {
-    steps: localSteps,
-    ref,
-  };
-  pluginState.localSteps = [];
-
-  return [tr, sendable];
 }

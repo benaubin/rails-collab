@@ -1,48 +1,53 @@
 import type { Step, Transform } from "prosemirror-transform";
 import type { Schema } from "prosemirror-model";
+import forEachRight from "lodash/forEachRight";
 
-export interface Rebaseable<S extends Schema = Schema> {
+export type Rebaseable<S extends Schema = Schema> = {
   step: Step<S>;
   inverted: Step<S>;
-  origin: Transform;
-}
+};
+
+const notUndefined = <T>(val?: T): val is T => typeof val !== "undefined";
 
 // Based on prosemirror-collab's function of the same name
-// Undo a given set of steps, apply a set of other steps, and then
-// redo them.
+// Undo a given set of steps, apply a set of other steps, and then redo them.
+// This only really works well in real-time editing (someone needs to catch conflicts)
 export function rebaseSteps<S extends Schema>(
   steps: Rebaseable<S>[],
   over: Step<S>[],
   transform: Transform<S>
 ): Rebaseable<S>[] {
-  for (let i = steps.length - 1; i >= 0; i--) transform.step(steps[i].inverted);
-  for (const step of over) transform.step(step);
+  // undo all steps
+  forEachRight(steps, ({ inverted }) => transform.step(inverted));
+  const indexOfLastUndo = transform.steps.length - 1;
+
+  // apply the new steps
+  over.forEach((step) => transform.step(step));
 
   return steps
-    .map(({ step, origin }, i) => {
-      const mapFrom = steps.length - i;
-      let mapped = step.map(transform.mapping.slice(mapFrom));
+    .map(({ step }, i) => {
+      const indexOfUndo = indexOfLastUndo - i;
+      const indexOfRedo = transform.steps.length;
+      const docBeforeRedo = transform.doc;
 
-      if (!mapped || transform.maybeStep(mapped).failed) return;
+      const mappingThruRebase = transform.mapping.slice(indexOfUndo + 1);
 
-      (transform.mapping as any).setMirror(
-        mapFrom - 1,
-        transform.steps.length - 1
-      );
+      step = step.map(mappingThruRebase)!;
+      if (step == null || transform.maybeStep(step).failed) return;
+
+      (transform.mapping as any).setMirror(indexOfUndo, indexOfRedo);
 
       return {
-        step: mapped,
-        inverted: mapped.invert(transform.docs[transform.docs.length - 1]),
-        origin: origin,
+        step,
+        inverted: step.invert(docBeforeRedo),
       };
     })
-    .filter((a): a is NonNullable<typeof a> => typeof a !== "undefined");
+    .filter(notUndefined);
 }
 
 export function transformToRebaseable(transform: Transform): Rebaseable[] {
   return transform.steps.map((step, i) => ({
     step,
     inverted: step.invert(transform.docs[i]),
-    origin: transform,
   }));
 }

@@ -1,7 +1,7 @@
 import type { Cable, Channel } from "actioncable";
-import ReceivedTransactionQueue from "./received-transaction-queue";
+import ReceivedCommitQueue from "./received-commit-queue";
 
-export type ServerTransaction = {
+export type Commit = {
   v: number;
   steps: { [k: string]: unknown }[];
   ref?: string | null;
@@ -22,11 +22,11 @@ export default class CollaborationConnection {
     params: SubscriptionParams,
     cable: Cable,
     startingVersion: number,
-    onTransactionBatch: (batch: ServerTransaction[]) => void
+    onCommitBatch: (batch: Commit[]) => void
   ) {
-    const transactionQueue = new ReceivedTransactionQueue(
+    const transactionQueue = new ReceivedCommitQueue(
       startingVersion,
-      onTransactionBatch
+      onCommitBatch
     );
 
     this.channel = cable.subscriptions.create(
@@ -46,7 +46,7 @@ export default class CollaborationConnection {
   }
 
   /** This needs to be throttled to prevent overwhelming the server, or running into (very tricky) potential silent rate-limiting. */
-  submitTransaction(data: ServerTransaction) {
-    this.channel.perform("submit", data);
+  commit(data: Commit) {
+    this.channel.perform("commit", data);
   }
 }

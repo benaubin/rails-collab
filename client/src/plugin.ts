@@ -1,21 +1,27 @@
 import type { Cable } from "actioncable";
 import type { Schema } from "prosemirror-model";
+import type { PluginSpec } from "prosemirror-state";
+import { Plugin } from "prosemirror-state";
 import throttle from "lodash/throttle";
-import { Plugin, PluginSpec } from "prosemirror-state";
 import CollaborationConnection, { SubscriptionParams } from "./connection";
-import {
-  applyReceivedTransactions,
-  readyStepsForSending,
-} from "./transactions";
+import { applyCommits, makeCommit } from "./transactions";
 import { Rebaseable, transformToRebaseable } from "./rebaseable";
 import { pluginKey as key } from "./plugin-key";
 
+/**
+ * A neat interface with a super cool sounding name.
+ *
+ * Tracks all commits currently inflight, mapped to the number of unconfirmedSteps it contains (pre-merging)
+ */
+interface CommitFlightMap {
+  [ref: string]: number | undefined;
+}
+
 export interface PluginState<S extends Schema = Schema> {
   localSteps: Rebaseable<S>[];
-  inflight?: {
-    steps: Rebaseable<S>[];
-    ref: string;
-  };
+  inflightSteps: Rebaseable<S>[];
+  /** Map ref to number of steps in commit */
+  inflightCommits: CommitFlightMap;
   syncedVersion: number;
 }
 
@@ -33,7 +39,12 @@ export function railsCollab<S extends Schema>({
   return new Plugin<PluginState, S>({
     key,
     state: {
-      init: () => ({ localSteps: [], syncedVersion: startingVersion }),
+      init: () => ({
+        localSteps: [],
+        inflightSteps: [],
+        inflightCommits: {},
+        syncedVersion: startingVersion,
+      }),
       apply(tr, pluginState) {
         const newState = tr.getMeta(key);
         if (newState) return newState;
@@ -41,7 +52,7 @@ export function railsCollab<S extends Schema>({
         if (tr.docChanged) {
           return {
             ...pluginState,
-            localSteps: pluginState.localSteps.concat(
+            inflightSteps: pluginState.inflightSteps.concat(
               transformToRebaseable(tr)
             ),
           };
@@ -55,18 +66,15 @@ export function railsCollab<S extends Schema>({
         cable,
         startingVersion,
         (batch) => {
-          view.dispatch(applyReceivedTransactions(view.state, batch));
+          view.dispatch(applyCommits(view.state, batch));
         }
       );
 
       const sendSteps = throttle(
         () => {
-          const ready = readyStepsForSending(view.state);
-          if (!ready) return;
-          const [tr, sendable] = ready;
-
-          view.dispatch(tr);
-          connection.submitTransaction(sendable);
+          const commit = makeCommit(view.state);
+          if (!commit) return;
+          connection.commit(commit);
         },
         throttleMs,
         {
