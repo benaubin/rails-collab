@@ -12,6 +12,9 @@ gem/test/dummy/db/*.sqlite3-*
 gem/test/dummy/log/*.log
 gem/test/dummy/storage/
 gem/test/dummy/tmp/
+gem/test/dummy/.byebug_history
+gem/test/dummy/node_modules
+gem/test/dummy/public/packs
 
 js/dist
 js/node_modules

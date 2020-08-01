@@ -1,19 +1,17 @@
 module Collab
   module Channel
-    def document; @document end
-
     def subscribed
       @document = find_document
-
+  
       starting_version = params[:startingVersion]&.to_i
       raise "missing startingVersion" if starting_version.nil?
 
-      stream_for document
+      stream_for @document
       
-      commits = document.commits
-                        .where("document_version > ?", starting_version)
-                        .order(document_version: :asc)
-                        .load
+      commits = @document.commits
+                         .where("document_version > ?", starting_version)
+                         .order(document_version: :asc)
+                         .load
               
       unless commits.empty?
         raise "invalid version" unless commits.first.document_version == (starting_version + 1)
@@ -23,7 +21,7 @@ module Collab
 
     def commit(data)
       authorize_commit!(data)
-      document.commit_later(data)
+      @document.commit_later(data)
     end
 
     def unsubscribed

@@ -1,6 +1,6 @@
 import { Step } from "prosemirror-transform";
+import type { Node } from "prosemirror-model";
 import {
-  Node,
   DOMParser as ProsemirrorDOMParser,
   DOMSerializer as ProsemirrorDOMSerializer,
 } from "prosemirror-model";
@@ -21,7 +21,7 @@ export default function schemaFunctions<S extends Schema>(schema: S) {
       doc: JSONSerializable;
       commit: CommitData;
     }): JSONSerializable | false {
-      let doc = Node.fromJSON(schema, data.doc);
+      let doc = schema.nodeFromJSON(data.doc) as Node<S>;
 
       for (const stepData of data.commit.steps) {
         const step = Step.fromJSON(schema, stepData);
@@ -41,7 +41,7 @@ export default function schemaFunctions<S extends Schema>(schema: S) {
     },
 
     docToHtml(docRaw: JSONSerializable): string {
-      const doc = Node.fromJSON(schema, docRaw);
+      const doc = schema.nodeFromJSON(docRaw) as Node<S>;
       const serializer = ProsemirrorDOMSerializer.fromSchema(schema);
       const domFragment = serializer.serializeFragment(doc.content, {
         document,
