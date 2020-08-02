@@ -35,11 +35,10 @@ export function compactSteps<S extends Schema>(steps: Step<S>[]): Step<S>[] {
 
   for (let i = 1; i < steps.length; i++) {
     const step = steps[i];
-    const prev = steps[compacted.length - 1];
 
-    let merged: MergedStep<S>;
+    let merged = steps[compacted.length - 1].merge(step);
 
-    if ((merged = prev.merge(step))) {
+    if (merged) {
       compacted[compacted.length - 1] = merged;
     } else {
       compacted.push(step);
