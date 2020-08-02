@@ -4,7 +4,7 @@ import type { PluginSpec } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import throttle from "lodash/throttle";
 import CollaborationConnection, { SubscriptionParams } from "./connection";
-import { applyCommits, makeCommit } from "./transactions";
+import { applyCommits, makeCommit } from "./commits";
 import { Rebaseable, transformToRebaseable } from "./rebaseable";
 import { pluginKey as key } from "./plugin-key";
 
