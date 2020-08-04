@@ -1,13 +1,6 @@
 import typescript from "@wessberg/rollup-plugin-ts";
 
-const external = [
-  "prosemirror-state",
-  "prosemirror-transform",
-  "prosemirror-model",
-  "lodash/throttle",
-  "lodash/flatMap",
-  "lodash/forEachRight",
-];
+const external = ["prosemirror-state", "prosemirror-transform"];
 
 export default [
   {

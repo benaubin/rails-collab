@@ -1,6 +1,5 @@
 import type { Step, Transform } from "prosemirror-transform";
 import type { Schema, Node } from "prosemirror-model";
-import forEachRight from "lodash/forEachRight";
 import { Transaction } from "prosemirror-state";
 
 export class Rebaseable<S extends Schema = Schema> {
@@ -33,7 +32,8 @@ export function rebaseSteps<S extends Schema>(
   tr.setMeta("rebased", rebased + steps.length);
 
   // undo all steps
-  forEachRight(steps, ({ inverted }) => tr.step(inverted));
+  for (let i = steps.length - 1; i >= 0; i--) tr.step(steps[i].inverted);
+
   const indexOfLastUndo = tr.steps.length - 1;
 
   over();
