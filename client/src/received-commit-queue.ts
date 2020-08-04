@@ -1,20 +1,20 @@
-import type { Commit } from "./connection";
+import type { CommitData } from "./connection";
 
 /** A class which handles re-ordering transactions sent out of order */
 export default class ReceivedCommitQueue {
   queue: {
-    [version: number]: Commit | undefined;
+    [version: number]: CommitData | undefined;
   } = {};
 
   nextVersion: number;
-  onBatch: (batch: Commit[]) => void;
+  onBatch: (batch: CommitData[]) => void;
 
-  constructor(startingVersion: number, onBatch: (batch: Commit[]) => void) {
+  constructor(startingVersion: number, onBatch: (batch: CommitData[]) => void) {
     this.nextVersion = startingVersion + 1;
     this.onBatch = onBatch;
   }
 
-  receive(commit: Commit) {
+  receive(commit: CommitData) {
     if (this.nextVersion > commit.v) return; // This is an old commit - ignore it.
 
     if (this.nextVersion === commit.v) {

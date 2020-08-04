@@ -1,5 +1,9 @@
 class CollabDocumentChannel < ApplicationCable::Channel
-  include Collab::Channel
+  prepend Collab::Channel
+
+  # def select(selection)
+  #   handle the user's selection here
+  # end
 
   private
 

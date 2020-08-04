@@ -1,7 +1,11 @@
 module Collab
   class Models::Document < ::Collab::Models::Base
     belongs_to :attached, polymorphic: true
-    has_many :commits, class_name: ::Collab.config.commit_model, foreign_key: :document_id
+
+    with_options foreign_key: :document_id do
+      has_many :commits,           class_name: ::Collab.config.commit_model
+      has_many :tracked_positions, class_name: ::Collab.config.tracked_position_model
+    end
 
     validates :content, presence: true
     validates :document_version, presence: true, numericality: {only_integer: true, greater_than_or_equal_to: 0}
@@ -24,12 +28,47 @@ module Collab
       end
     end
 
-    def from_html(html)
-      self.content = ::Collab::JS.html_to_document(html, schema_name: schema_name)
+    def apply_commit(data)
+      base_version = data["v"]&.to_i
+      steps = data["steps"]
+
+      return false unless base_version
+      return false unless steps.is_a?(Array) && !steps.empty?
+
+      self.with_lock do
+        return false unless self.possibly_saved_version? base_version
+
+        self.tracked_positions.where(references: 0).destroy_all
+
+        positions = self.tracked_positions.current.pluck(:id, :pos, :assoc)
+        position_ids    = positions.map { |(id)| id }
+        position_hashes = positions.map { |(_id, pos, assoc)| {pos: pos, assoc: assoc} }
+        
+        result = ::Collab::JS.apply_commit content,
+                                          {steps: steps},
+                                           map_steps_through: self.commits.where("document_version > ?", base_version).steps,
+                                           pos: position_hashes,
+                                           schema_name: schema_name
+
+        self.document_version = self.document_version + 1
+        self.content = result["doc"]
+        self.save!
+
+        commits.create!({
+          steps: result["steps"],
+          ref: data["ref"],
+          document_version: self.document_version
+        })
+
+        result["pos"].lazy.zip(position_ids) do |res, id|
+          tracked_positions.update(id, res["deleted"] ? {deleted_at_version: self.document_version} : {pos: res["pos"]} )
+        end
+      end
+
     end
 
-    def commit_later(data)
-      commits.from_json(data).apply_later
+    def from_html(html)
+      self.content = ::Collab::JS.html_to_document(html, schema_name: schema_name)
     end
 
     def as_json
@@ -41,12 +80,24 @@ module Collab
       self.serialized_html = nil
     end
 
+    def possibly_saved_version?(version)
+      self.document_version >= version && self.oldest_saved_commit_version <= version
+    end
+
+    def oldest_saved_commit_version
+      v = document_version - ::Collab.config.max_commit_history_length
+      v > 0 ? v : 0
+    end
+
+    def with_resolved_position(pos, **kwargs)
+      ::Collab.config.tracked_position_model.constantize(self, pos, **kwargs)
+    end
+
     private
 
     def delete_old_commits
-      cutoff = document_version - ::Collab.config.max_commit_history_length
-      return if cutoff <= 0
-      commits.where("document_version < ?", cutoff).delete_all
+      return if oldest_saved_commit_version == 0
+      commits.where("document_version < ?", oldest_saved_commit_version).delete_all
     end
   end
 end

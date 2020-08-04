@@ -2,18 +2,11 @@ import type { Schema } from "prosemirror-model";
 import type { EditorState, Transaction } from "prosemirror-state";
 import { TextSelection } from "prosemirror-state";
 import { Step } from "prosemirror-transform";
-import flatMap from "lodash/flatMap";
-import { compactRebaseable, compactSteps } from "./compact-steps";
-import type { Commit } from "./connection";
+import { compactRebaseable } from "./compact-steps";
 import type { PluginState } from "./plugin";
 import key from "./plugin-key";
-import { rebaseSteps } from "./rebaseable";
-
-function randomRef() {
-  const bytes = new Uint32Array(2);
-  window.crypto.getRandomValues(bytes);
-  return bytes.reduce((str, byte) => str + byte.toString(36), "");
-}
+import { rebaseSteps, Rebaseable } from "./rebaseable";
+import { CommitData } from "./connection";
 
 /** a helper function to make a transaction which will modify the plugin state */
 function makeTransaction<S extends Schema>(editorState: EditorState<S>) {
@@ -24,37 +17,70 @@ function makeTransaction<S extends Schema>(editorState: EditorState<S>) {
   return [tr, pluginState, nextPluginState] as const;
 }
 
+function applyCommitSteps<S extends Schema>(
+  tr: Transaction<S>,
+  schema: S,
+  data: CommitData
+) {
+  for (const stepJSON of data.steps) {
+    const step = Step.fromJSON(schema, stepJSON);
+    tr.step(step);
+  }
+}
+
 export function applyCommits<S extends Schema>(
   editorState: EditorState<S>,
-  commits: Commit[]
+  commits: CommitData[]
 ): Transaction<S> {
-  const [tr, { inflightCommits }, newState] = makeTransaction(editorState);
+  const [tr, {}, state] = makeTransaction(editorState);
 
   tr.setMeta("addToHistory", false);
+  state.syncedVersion += commits.length;
 
-  newState.syncedVersion += commits.length;
-  newState.inflightCommits = {}; // all inflight commits were either confirmed or rejected (bad version)
+  state.localSteps = rebaseSteps(tr, state.localSteps, () => {
+    if (state.inflightCommit) {
+      // we have a commit inflight, so we need to be on the lookout for a confirmation of the commit
+      let commit = commits.shift();
+      if (commit == null) return;
 
-  const { ref } = commits[0]; // only the first commit could be from this client as other commits refer to a newer version of the document
-  const commitStepsLen = ref == null ? undefined : inflightCommits[ref];
-  if (typeof commitStepsLen !== "undefined") {
-    newState.inflightSteps = newState.inflightSteps.slice(commitStepsLen);
-    commits.shift();
-  }
+      if (commit.ref === state.inflightCommit.ref) {
+        state.inflightCommit = undefined;
+      } else {
+        // This gets a bit messy.
+        // We have a commit inflight and we _may_ have received it in this batch of commits
+        // we need to rebase the commit we have inflight over the commits the server accepted prior to the inflight commit
+        // however, if we get confirmation of our inflight commit, finalize the rebase (redoing the inflight commit)
 
-  const remoteSteps = flatMap(commits, ({ steps }) =>
-    steps.map((step) => Step.fromJSON(editorState.schema, step))
-  );
+        let inflightConfirmed = false;
+        const inflightRef = state.inflightCommit.ref;
 
-  if (newState.inflightSteps.length == 0) {
-    for (const step of remoteSteps) tr.step(step);
-  } else {
-    newState.inflightSteps = rebaseSteps(
-      newState.inflightSteps,
-      remoteSteps,
-      tr
-    );
-  }
+        const rebasedSteps = rebaseSteps(tr, state.inflightCommit.steps, () => {
+          while (commit) {
+            applyCommitSteps(tr, editorState.schema, commit);
+
+            commit = commits.shift();
+            if (commit && commit.ref === inflightRef) {
+              inflightConfirmed = true;
+              return;
+            }
+          }
+        });
+
+        if (inflightConfirmed) {
+          state.inflightCommit = undefined;
+        } else {
+          state.inflightCommit = new InflightCommit(
+            rebasedSteps,
+            state.syncedVersion,
+            inflightRef
+          );
+        }
+      }
+    }
+
+    for (const commit of commits)
+      applyCommitSteps(tr, editorState.schema, commit);
+  });
 
   // prosemirror-collab's mapselectionbackward
   tr.setSelection(
@@ -69,34 +95,52 @@ export function applyCommits<S extends Schema>(
   return tr;
 }
 
-/**
- * Makes a commit out of steps available for sending
- */
-export function makeCommit<S extends Schema>(
-  editorState: EditorState<S>
-): Commit | undefined {
-  const pluginState: PluginState<S> = key.getState(editorState);
+export class InflightCommit<S extends Schema> {
+  readonly baseVersion: number;
+  readonly steps: Rebaseable<S>[];
+  readonly ref: string;
 
-  if (pluginState.localSteps.length > 0) {
-    const compactedSteps = compactRebaseable(pluginState.localSteps);
-    pluginState.inflightSteps = pluginState.inflightSteps.concat(
-      compactedSteps
-    );
-    pluginState.localSteps = [];
+  constructor(
+    steps: Rebaseable<S>[],
+    baseVersion: number,
+    ref = InflightCommit.randomRef()
+  ) {
+    this.baseVersion = baseVersion;
+    this.steps = steps;
+    this.ref = ref;
   }
 
-  const { inflightSteps } = pluginState;
+  sendable(): CommitData {
+    return {
+      v: this.baseVersion,
+      ref: this.ref,
+      steps: this.steps.map((step) => step.step.toJSON()),
+    };
+  }
 
-  if (inflightSteps.length === 0) return;
+  static randomRef() {
+    const bytes = new Uint32Array(2);
+    window.crypto.getRandomValues(bytes);
+    return bytes.reduce((str, byte) => str + byte.toString(36), "");
+  }
 
-  const ref = randomRef();
-  pluginState.inflightCommits[ref] = inflightSteps.length;
+  static fromState<S extends Schema>(
+    editorState: EditorState<S>
+  ): InflightCommit<S> | undefined {
+    const state: PluginState<S> = key.getState(editorState);
 
-  const compactedSteps = compactSteps(inflightSteps.map(({ step }) => step));
+    // we may only have one inflight commit at a time
+    if (state.inflightCommit) return;
+    if (state.localSteps.length === 0) return;
 
-  return {
-    v: pluginState.syncedVersion + 1,
-    steps: compactedSteps.map((s) => s.toJSON()),
-    ref,
-  };
+    const sendableSteps = compactRebaseable(state.localSteps);
+    state.localSteps = sendableSteps.splice(9);
+
+    state.inflightCommit = new InflightCommit(
+      sendableSteps,
+      state.syncedVersion
+    );
+
+    return state.inflightCommit;
+  }
 }

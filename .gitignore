@@ -1,6 +1,7 @@
 client/node_modules/
 client/dist/
 client/yarn.lock
+client/yarn*.log
 
 gem/Gemfile.lock
 gem/.bundle/

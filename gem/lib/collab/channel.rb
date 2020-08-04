@@ -5,6 +5,7 @@ module Collab
   
       starting_version = params[:startingVersion]&.to_i
       raise "missing startingVersion" if starting_version.nil?
+      raise "invalid version" unless @document.possibly_saved_version? (starting_version - 1)
 
       stream_for @document
       
@@ -21,7 +22,21 @@ module Collab
 
     def commit(data)
       authorize_commit!(data)
-      @document.commit_later(data)
+      @document.apply_commit(data)
+    end
+
+    def select(data)
+      return unless defined?(_select)
+
+      version    = data["v"]&.to_i
+      anchor_pos = data["anchor"]&.to_i
+      head_pos   = data["head"]&.to_i
+
+      return unless version && @document.possibly_saved_version?(version) && anchor_pos && head_pos
+
+      ::Collab::Range.resolve(@document, anchor_pos, head_pos, version: version) do |selection|
+        _select selection
+      end
     end
 
     def unsubscribed

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_08_01_005003) do
+ActiveRecord::Schema.define(version: 2020_08_03_004606) do
 
   create_table "collab_commits", id: false, force: :cascade do |t|
     t.integer "document_id", null: false
@@ -34,10 +34,32 @@ ActiveRecord::Schema.define(version: 2020_08_01_005003) do
     t.index ["attached_type", "attached_id", "attached_as"], name: "index_collab_documents_on_attached"
   end
 
+  create_table "collab_tracked_positions", force: :cascade do |t|
+    t.integer "document_id", null: false
+    t.integer "pos", null: false
+    t.integer "assoc", default: 1, null: false
+    t.integer "deleted_at_version"
+    t.integer "references", default: 0, null: false
+    t.index ["document_id", "deleted_at_version", "pos"], name: "index_collab_tracked_positions_on_document_pos"
+  end
+
+  create_table "document_clients", force: :cascade do |t|
+    t.integer "selection_head_id"
+    t.integer "selection_anchor_id"
+    t.string "name"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["selection_anchor_id"], name: "index_document_clients_on_selection_anchor_id"
+    t.index ["selection_head_id"], name: "index_document_clients_on_selection_head_id"
+  end
+
   create_table "notes", force: :cascade do |t|
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
 
   add_foreign_key "collab_commits", "collab_documents", column: "document_id"
+  add_foreign_key "collab_tracked_positions", "collab_documents", column: "document_id"
+  add_foreign_key "document_clients", "collab_tracked_positions", column: "selection_anchor_id"
+  add_foreign_key "document_clients", "collab_tracked_positions", column: "selection_head_id"
 end

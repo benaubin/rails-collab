@@ -21,20 +21,26 @@ module Collab
         queue << js
       end
 
-      def call(name, data = nil, schema_name:)
-        with_js { |js| js.call(name, data, schema_name: schema_name) }
+      def call(name, data = nil, schema_name = nil)
+        req = {name: name, data: data, schemaPackage: ::Collab.config.schema_package}
+        req[:schemaName] = schema_name if schema_name
+        with_js { |js| js.call(JSON.generate(req)) }
       end
       
-      def apply_commit(document, commit, schema_name:)
-        call("applyCommit", {doc: document, commit: commit}, schema_name: schema_name)
+      def apply_commit(document, commit, pos: nil, map_steps_through:, schema_name:)
+        call("applyCommit", {doc: document, commit: commit, mapStepsThrough: map_steps_through, pos: pos},schema_name)
       end
 
       def html_to_document(html, schema_name:)
-        call("htmlToDoc", html, schema_name: schema_name)
+        call("htmlToDoc", html, schema_name)
       end
 
       def document_to_html(document, schema_name:)
-        call("docToHtml", document, schema_name: schema_name)
+        call("docToHtml", document, schema_name)
+      end
+
+      def map_through(steps:, pos:)
+        call("mapThru", {steps: steps, pos: pos})
       end
 
       private 
@@ -58,9 +64,8 @@ module Collab
                  end
       end
 
-      def call(name, data = nil, schema_name:)
-        req = {name: name, data: data, schemaPackage: ::Collab.config.schema_package, schemaName: schema_name}
-        @node.puts(JSON.generate(req))
+      def call(req)
+        @node.puts(req)
         res = JSON.parse(@node.gets)
         raise ::Collab::JS::JSRuntimeError.new(res["error"]) if res["error"]
         res["result"]

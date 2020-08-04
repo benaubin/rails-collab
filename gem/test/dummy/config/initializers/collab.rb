@@ -12,11 +12,6 @@ Collab.config do |c|
   # If you change this, you must pass the value as {channel: "[ChannelName]"} in the params from the ActionCable client
   c.channel = "CollabDocumentChannel"
 
-  # The class which jobs in the gem should inherit from
-  c.base_job = "ApplicationJob"
-  # The jobs to use, if you want to implement your own jobs
-  # c.commit_job = "..."
-
   # The class which models in the gem should inherit from
   c.base_record = "ApplicationRecord"
   # The models to use, if you want to implement your own models

@@ -1,4 +1,4 @@
-import { Step } from "prosemirror-transform";
+import { Step, Transform, Mapping } from "prosemirror-transform";
 import type { Node } from "prosemirror-model";
 import {
   DOMParser as ProsemirrorDOMParser,
@@ -13,6 +13,11 @@ interface CommitData extends JSONSerializable {
   steps: JSONSerializable[];
 }
 
+interface TrackedPosition extends JSONSerializable {
+  pos: number;
+  assoc: -1 | 1;
+}
+
 const { document } = new JSDOM().window;
 
 export default function schemaFunctions<S extends Schema>(schema: S) {
@@ -20,18 +25,42 @@ export default function schemaFunctions<S extends Schema>(schema: S) {
     applyCommit(data: {
       doc: JSONSerializable;
       commit: CommitData;
-    }): JSONSerializable | false {
-      let doc = schema.nodeFromJSON(data.doc) as Node<S>;
+      mapStepsThrough: JSONSerializable[];
+      pos?: TrackedPosition[];
+    }): JSONSerializable {
+      const mapping = new Mapping(
+        data.mapStepsThrough.map((stepData) =>
+          Step.fromJSON(schema, stepData).getMap()
+        )
+      );
 
-      for (const stepData of data.commit.steps) {
-        const step = Step.fromJSON(schema, stepData);
-        const result = step.apply(doc);
+      const original = schema.nodeFromJSON(data.doc);
+      const tr = new Transform(original);
 
-        if (result.failed) return false;
-        if (result.doc) doc = result.doc;
-      }
+      const succeededSteps = data.commit.steps.filter((stepData) => {
+        const step = Step.fromJSON(schema, stepData).map(mapping);
+        if (step == null) return false;
+        const res = tr.maybeStep(step);
+        return !res.failed;
+      });
 
-      return { doc: doc.toJSON() };
+      return {
+        doc: tr.doc.toJSON(),
+        steps: succeededSteps,
+        pos: data.pos?.map(({ pos, assoc }) =>
+          tr.mapping.mapResult(pos, assoc)
+        ),
+      };
+    },
+
+    mapThru(data: { steps: JSONSerializable[]; pos: TrackedPosition[] }) {
+      const mapping = new Mapping(
+        data.steps.map((step) => Step.fromJSON(schema, step).getMap())
+      );
+
+      return {
+        pos: data.pos.map(({ pos, assoc }) => mapping.mapResult(pos, assoc)),
+      };
     },
 
     htmlToDoc(html: string): JSONSerializable {

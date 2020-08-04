@@ -16,19 +16,18 @@ module Collab
 
   class Config
     attr_accessor :base_record,
-                  :base_job,
                   :channel,
-                  :commit_job,
                   :commit_model,
                   :document_model,
                   :max_commit_history_length,
                   :num_js_processes,
-                  :schema_package
+                  :schema_package,
+                  :tracked_position_model
 
     def initialize
-      self.commit_job = "Collab::CommitJob"
       self.document_model = "Collab::Models::Document"
       self.commit_model = "Collab::Models::Commit"
+      self.tracked_position_model = "Collab::Models::TrackedPosition"
     end
   end
 end

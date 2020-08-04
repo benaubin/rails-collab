@@ -4,25 +4,17 @@ import type { PluginSpec } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import throttle from "lodash/throttle";
 import CollaborationConnection, { SubscriptionParams } from "./connection";
-import { applyCommits, makeCommit } from "./commits";
+import { applyCommits, InflightCommit } from "./commits";
 import { Rebaseable, transformToRebaseable } from "./rebaseable";
-import { pluginKey as key } from "./plugin-key";
-
-/**
- * A neat interface with a super cool sounding name.
- *
- * Tracks all commits currently inflight, mapped to the number of unconfirmedSteps it contains (pre-merging)
- */
-interface CommitFlightMap {
-  [ref: string]: number | undefined;
-}
+import pluginKey, { pluginKey as key } from "./plugin-key";
 
 export interface PluginState<S extends Schema = Schema> {
   localSteps: Rebaseable<S>[];
-  inflightSteps: Rebaseable<S>[];
-  /** Map ref to number of steps in commit */
-  inflightCommits: CommitFlightMap;
+
+  inflightCommit?: InflightCommit<S>;
+
   syncedVersion: number;
+  selectionNeedsSending?: boolean;
 }
 
 export function railsCollab<S extends Schema>({
@@ -30,34 +22,36 @@ export function railsCollab<S extends Schema>({
   startingVersion,
   cable,
   throttleMs = 2000,
+  syncSelection,
 }: {
   params: SubscriptionParams;
   startingVersion: number;
   cable: Cable;
   throttleMs?: number;
+  syncSelection?: boolean;
 }) {
   return new Plugin<PluginState, S>({
     key,
     state: {
       init: () => ({
         localSteps: [],
-        inflightSteps: [],
-        inflightCommits: {},
         syncedVersion: startingVersion,
+        selectionNeedsSending: true,
       }),
-      apply(tr, pluginState) {
-        const newState = tr.getMeta(key);
-        if (newState) return newState;
-
-        if (tr.docChanged) {
-          return {
-            ...pluginState,
-            inflightSteps: pluginState.inflightSteps.concat(
+      apply(tr, oldState) {
+        let state = tr.getMeta(key);
+        if (state == null) {
+          state = { ...oldState };
+          if (tr.docChanged)
+            state.localSteps = state.localSteps.concat(
               transformToRebaseable(tr)
-            ),
-          };
+            );
         }
-        return pluginState;
+
+        if (syncSelection && tr.selectionSet)
+          state.selectionNeedsSending = true;
+
+        return state;
       },
     },
     view(view) {
@@ -70,11 +64,32 @@ export function railsCollab<S extends Schema>({
         }
       );
 
-      const sendSteps = throttle(
+      const sync = throttle(
         () => {
-          const commit = makeCommit(view.state);
-          if (!commit) return;
-          connection.commit(commit);
+          const pluginState: PluginState = pluginKey.getState(view.state);
+          const commit = InflightCommit.fromState(view.state);
+
+          if (commit) {
+            connection.commit(commit.sendable());
+          }
+
+          const synced =
+            commit == null &&
+            pluginState.inflightCommit == null &&
+            pluginState.localSteps.length == 0;
+
+          if (pluginState.selectionNeedsSending) {
+            if (synced) {
+              connection.sendSelect({
+                v: pluginState.syncedVersion,
+                head: view.state.selection.head,
+                anchor: view.state.selection.anchor,
+              });
+              pluginState.selectionNeedsSending = false;
+            } else {
+              sync(); // we'll send the selection later, once we're synced with the server.
+            }
+          }
         },
         throttleMs,
         {
@@ -83,10 +98,12 @@ export function railsCollab<S extends Schema>({
         }
       );
 
-      const { dispatch } = view;
-      view.dispatch = (tr) => {
-        dispatch(tr);
-        sendSteps();
+      const { dispatchTransaction } = view.props;
+      view.props.dispatchTransaction = (tr) => {
+        if (dispatchTransaction) dispatchTransaction.call(view, tr);
+        else view.updateState(view.state.apply(tr));
+
+        sync();
       };
 
       return {
