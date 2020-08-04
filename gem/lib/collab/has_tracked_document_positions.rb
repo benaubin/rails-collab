@@ -7,17 +7,18 @@ module Collab
         belongs_to pos_name.to_sym, class_name: ::Collab.config.tracked_position_model, optional: optional, counter_cache: :references
       end
 
-      def has_tracked_document_range(range_name)
-        has_tracked_document_position :"#{range_name}_anchor"
-        has_tracked_document_position :"#{range_name}_head"
+      def has_tracked_document_selection(selection_name)
+        has_tracked_document_position :"#{selection_name}_anchor"
+        has_tracked_document_position :"#{selection_name}_head"
 
-        define_method range_name do
-          ::Collab::Range.new self.send(:"#{range_name}_anchor"), self.send(:"#{range_name}_head")
+        define_method selection_name do
+          anchor, head = ::Collab.config.tracked_position_model.constantize.find(self.send(:"#{selection_name}_anchor_id"), self.send(:"#{selection_name}_head_id"))
+          ::Collab::DocumentSelection.new anchor, head
         end
 
-        define_method :"#{range_name}=" do |range|
-          self.send(:"#{range_name}_anchor=", range&.anchor)
-          self.send(:"#{range_name}_head=", range&.head)
+        define_method :"#{selection_name}=" do |sel|
+          self.send(:"#{selection_name}_anchor=", sel&.anchor)
+          self.send(:"#{selection_name}_head=", sel&.head)
         end
       end
     end

@@ -34,7 +34,7 @@ module Collab
 
       return unless version && @document.possibly_saved_version?(version) && anchor_pos && head_pos
 
-      ::Collab::Range.resolve(@document, anchor_pos, head_pos, version: version) do |selection|
+      ::Collab::DocumentSelection.resolve(@document, anchor_pos, head_pos, version: version) do |selection|
         _select selection
       end
 

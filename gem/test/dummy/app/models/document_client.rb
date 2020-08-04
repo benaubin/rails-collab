@@ -1,3 +1,3 @@
 class DocumentClient < ApplicationRecord
-  has_tracked_document_range :selection
+  has_tracked_document_selection :selection
 end

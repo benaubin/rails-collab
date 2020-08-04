@@ -1,5 +1,5 @@
 module Collab
-  class Range
+  class DocumentSelection
     attr_reader :anchor, :head
     def initialize(anchor, head)
       @anchor = anchor
