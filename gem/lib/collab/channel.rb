@@ -5,7 +5,7 @@ module Collab
   
       starting_version = params[:startingVersion]&.to_i
       raise "missing startingVersion" if starting_version.nil?
-      raise "invalid version" unless @document.possibly_saved_version? (starting_version - 1)
+      raise "invalid version" unless @document.possibly_saved_version? starting_version
 
       stream_for @document
       
