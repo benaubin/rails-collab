@@ -18,17 +18,28 @@ export class Rebaseable<S extends Schema = Schema> {
 
 const notUndefined = <T>(val?: T): val is T => typeof val !== "undefined";
 
-// Based on prosemirror-collab's function of the same name
-// Undo a given set of steps, apply a set of other steps, and then redo them.
-// This only really works well in real-time editing (someone needs to catch conflicts)
+/**
+ * Rebase steps over a transaction
+ *
+ * Rebasing must only occur at the start of transactions. However, you may rebase over another rebase.
+ * In other words, you must not call rebaseSteps() after applying a step to the given transform, but
+ * you may call rebaseSteps() inside the callback of rebaseSteps().
+ *
+ * @param tr The transaction which will be used
+ * @param steps The steps to rebase (they will be undone at the start of the transaction and redone at the end of the transaction)
+ * @param over A function which will be called synchronously after undoing but before redoing the given steps.
+ */
 export function rebaseSteps<S extends Schema>(
   tr: Transaction<S>,
   steps: Rebaseable<S>[],
   over: () => void
 ): Rebaseable<S>[] {
+  // Support interop with prosemirror-history
   const rebased = tr.getMeta("rebased") || 0;
   if (rebased !== tr.steps.length)
-    throw new Error("cannot rebase in a transaction that already started ");
+    throw new Error(
+      "Attempted to rebase, but non-rebased steps were already applied to this transaction."
+    );
   tr.setMeta("rebased", rebased + steps.length);
 
   // undo all steps
