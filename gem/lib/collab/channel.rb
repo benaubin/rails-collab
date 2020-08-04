@@ -37,6 +37,8 @@ module Collab
       ::Collab::Range.resolve(@document, anchor_pos, head_pos, version: version) do |selection|
         _select selection
       end
+
+      transmit({ack: "select"})
     end
 
     def unsubscribed
