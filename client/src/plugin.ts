@@ -17,16 +17,29 @@ export interface PluginState<S extends Schema = Schema> {
   selectionNeedsSending?: boolean;
 }
 
+function isSynced(pluginState: PluginState) {
+  return (
+    pluginState.inflightCommit == null && pluginState.localSteps.length == 0
+  );
+}
+
 export function railsCollab<S extends Schema>({
   params,
   startingVersion,
   cable,
   syncSelection,
+  onSyncStatusChanged,
 }: {
   params: SubscriptionParams;
   startingVersion: number;
   cable: Cable;
   syncSelection?: boolean;
+  /**
+   * Called when the editor has local changes, and again once those changes have been confirmed by the server.
+   *
+   * Useful for indictating "saved" satus to the user.
+   */
+  onSyncStatusChanged(synced: false | true): void;
 }) {
   return new Plugin<PluginState, S>({
     key,
@@ -81,15 +94,14 @@ export function railsCollab<S extends Schema>({
         }
       );
 
+      let wasSynced = true;
+
       const syncSelect = () => {
         if (selectionInflight) return;
 
         const pluginState: PluginState = pluginKey.getState(view.state);
-        const synced =
-          pluginState.inflightCommit == null &&
-          pluginState.localSteps.length == 0;
 
-        if (synced) {
+        if (isSynced(pluginState)) {
           channel.perform("select", {
             v: pluginState.syncedVersion,
             head: view.state.selection.head,
@@ -109,6 +121,12 @@ export function railsCollab<S extends Schema>({
 
         const pluginState: PluginState = pluginKey.getState(view.state);
         if (pluginState.selectionNeedsSending) syncSelect();
+
+        const synced = isSynced(pluginState);
+        if (synced !== wasSynced) {
+          onSyncStatusChanged(synced);
+          wasSynced = synced;
+        }
       };
 
       return {

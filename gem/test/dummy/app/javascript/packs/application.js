@@ -27,8 +27,12 @@ function loadEditor() {
             cable,
             startingVersion: data.version,
             params: { document_id: data.id },
-            throttleMs: 1000,
             syncSelection: true,
+            onSyncStatusChanged(synced) {
+              document.getElementById("save-status").innerText = synced
+                ? "Saved"
+                : "Saving...";
+            },
           }),
         ],
       }),
