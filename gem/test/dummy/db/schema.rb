@@ -51,8 +51,10 @@ ActiveRecord::Schema.define(version: 2020_08_03_004606) do
 
   create_table "document_clients", force: :cascade do |t|
     t.string "name"
+    t.bigint "document_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["document_id"], name: "index_document_clients_on_document_id"
   end
 
   create_table "notes", force: :cascade do |t|
@@ -62,4 +64,5 @@ ActiveRecord::Schema.define(version: 2020_08_03_004606) do
 
   add_foreign_key "collab_commits", "collab_documents", column: "document_id"
   add_foreign_key "collab_tracked_positions", "collab_documents", column: "document_id"
+  add_foreign_key "document_clients", "collab_documents", column: "document_id"
 end
