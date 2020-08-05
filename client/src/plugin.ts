@@ -96,6 +96,24 @@ class RailsCollabPlugin<S extends Schema> extends Plugin<PluginState, S> {
   isCollabSynced(state: EditorState<S>) {
     return isSynced(this.getState(state));
   }
+
+  mappingFromVersion(state: EditorState<S>, version: number) {
+    const pluginState = this.getState(state);
+    let behind = pluginState.syncedVersion - version;
+
+    if (behind < 0)
+      // too early to get a mapping for this version
+      return false;
+
+    const mapping = new Mapping();
+
+    for (; behind > 0; behind--)
+      mapping.appendMapping(pluginState.versionMappings[behind]);
+
+    mapping.appendMapping(pluginState.unsyncedMapping);
+
+    return mapping;
+  }
 }
 
 export default function railsCollab<S extends Schema>(opts: CollabOptions) {
