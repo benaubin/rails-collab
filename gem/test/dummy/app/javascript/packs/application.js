@@ -18,25 +18,31 @@ function loadEditor() {
   for (const editorEl of editors) {
     const data = JSON.parse(editorEl.dataset.collaborativeEditor);
 
+    const collab = railsCollab({
+      cable,
+      startingVersion: data.version,
+      params: { document_id: data.id },
+      syncSelection: true,
+    });
+
     new EditorView(editorEl, {
       state: EditorState.create({
         doc: schema.nodeFromJSON(data.content),
-        plugins: [
-          ...exampleSetup({ schema }),
-          railsCollab({
-            cable,
-            startingVersion: data.version,
-            params: { document_id: data.id },
-            syncSelection: true,
-            onSyncStatusChanged(synced) {
-              document.getElementById("save-status").innerText = synced
-                ? "Saved"
-                : "Saving...";
-            },
-          }),
-        ],
+        plugins: [...exampleSetup({ schema }), collab],
       }),
+      dispatchTransaction(tr) {
+        const newState = this.state.apply(tr);
+        this.updateState(newState);
+
+        const synced = collab.isCollabSynced(newState);
+
+        document.getElementById("save-status").innerText = synced
+          ? "Saved"
+          : "Saving...";
+      },
     });
+
+    cable.subscriptions.create("DocumentSelection");
   }
 }
 addEventListener("load", loadEditor);

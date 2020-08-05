@@ -9,7 +9,7 @@ import pluginKey from "./plugin-key";
 import ReceivedCommitQueue from "./received-commit-queue";
 import { EditorState } from "prosemirror-state";
 
-function isSynced(pluginState: PluginState) {
+export function isSynced(pluginState: PluginState) {
   return (
     pluginState.inflightCommit == null && pluginState.localSteps.length == 0
   );
