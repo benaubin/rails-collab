@@ -40,15 +40,12 @@ module Collab
 
         self.document_version += 1
 
-        self.tracked_positions.where(references: 0).destroy_all
-        positions = self.tracked_positions.current.pluck(:id, :pos, :assoc)
-        position_ids    = positions.map { |(id)| id }
-        position_hashes = positions.map { |(_id, pos, assoc)| {pos: pos, assoc: assoc} }
+        original_positions = self.tracked_positions.current.distinct.pluck(:pos, :assoc).map { |(pos, assoc)| {pos: pos, assoc: assoc} }
         
         result = ::Collab::JS.apply_commit content,
                                           {steps: steps},
                                            map_steps_through: self.commits.where("document_version > ?", base_version).steps,
-                                           pos: position_hashes,
+                                           pos: original_positions,
                                            schema_name: schema_name
 
         self.content = result["doc"]
@@ -61,8 +58,12 @@ module Collab
 
         self.save!
 
-        result["pos"].lazy.zip(position_ids) do |res, id|
-          tracked_positions.update(id, res["deleted"] ? {deleted_at_version: self.document_version} : {pos: res["pos"]} )
+        original_positions.lazy.zip(result["pos"]) do |original, res|
+          if res["deleted"]
+            tracked_positions.current.where(original).update_all deleted_at_version: self.document_version
+          elsif original[:pos] != res["pos"]
+            tracked_positions.current.where(original).update_all pos: res["pos"]
+          end
         end
       end
 

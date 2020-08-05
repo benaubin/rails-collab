@@ -12,6 +12,9 @@
 
 ActiveRecord::Schema.define(version: 2020_08_03_004606) do
 
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "collab_commits", id: false, force: :cascade do |t|
     t.integer "document_id", null: false
     t.integer "document_version", null: false
@@ -35,22 +38,21 @@ ActiveRecord::Schema.define(version: 2020_08_03_004606) do
   end
 
   create_table "collab_tracked_positions", force: :cascade do |t|
-    t.integer "document_id", null: false
+    t.bigint "document_id", null: false
+    t.string "owner_type", null: false
+    t.bigint "owner_id", null: false
+    t.string "name", null: false
     t.integer "pos", null: false
     t.integer "assoc", default: 1, null: false
     t.integer "deleted_at_version"
-    t.integer "references", default: 0, null: false
     t.index ["document_id", "deleted_at_version", "pos"], name: "index_collab_tracked_positions_on_document_pos"
+    t.index ["owner_type", "name", "owner_id"], name: "index_collab_tracked_positions_on_owner"
   end
 
   create_table "document_clients", force: :cascade do |t|
-    t.integer "selection_head_id"
-    t.integer "selection_anchor_id"
     t.string "name"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["selection_anchor_id"], name: "index_document_clients_on_selection_anchor_id"
-    t.index ["selection_head_id"], name: "index_document_clients_on_selection_head_id"
   end
 
   create_table "notes", force: :cascade do |t|
@@ -60,6 +62,4 @@ ActiveRecord::Schema.define(version: 2020_08_03_004606) do
 
   add_foreign_key "collab_commits", "collab_documents", column: "document_id"
   add_foreign_key "collab_tracked_positions", "collab_documents", column: "document_id"
-  add_foreign_key "document_clients", "collab_tracked_positions", column: "selection_anchor_id"
-  add_foreign_key "document_clients", "collab_tracked_positions", column: "selection_head_id"
 end

@@ -6,6 +6,7 @@ module Collab
   #
   class Models::TrackedPosition < ::Collab::Models::Base
     belongs_to :document, class_name: ::Collab.config.document_model
+    belongs_to :owner, polymorphic: true
 
     validates :pos, presence: true, numericality: {only_integer: true, greater_than_or_equal_to: 0}
     validates :assoc, presence: true, inclusion: {in: [-1, 1]}, numericality: {only_integer: true}
@@ -39,10 +40,6 @@ module Collab
 
         yield(*positions)
       end
-    end
-
-    def referenced?
-      references == 0
     end
   end
 end
