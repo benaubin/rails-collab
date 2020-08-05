@@ -1,12 +1,11 @@
 import type { Schema } from "prosemirror-model";
 import type { EditorState, Transaction } from "prosemirror-state";
-import { TextSelection } from "prosemirror-state";
 import { Step } from "prosemirror-transform";
 import { compactRebaseable } from "./compact-steps";
+import { CommitData } from "./connection";
 import type { PluginState } from "./plugin";
 import key from "./plugin-key";
-import { rebaseSteps, Rebaseable } from "./rebaseable";
-import { CommitData } from "./connection";
+import { Rebaseable, rebaseSteps } from "./rebaseable";
 
 /** a helper function to make a transaction which will modify the plugin state */
 function makeTransaction<S extends Schema>(editorState: EditorState<S>) {
@@ -81,16 +80,6 @@ export function applyCommits<S extends Schema>(
     for (const commit of commits)
       applyCommitSteps(tr, editorState.schema, commit);
   });
-
-  // prosemirror-collab's mapselectionbackward
-  tr.setSelection(
-    TextSelection.between(
-      tr.doc.resolve(tr.mapping.map(editorState.selection.anchor, -1)),
-      tr.doc.resolve(tr.mapping.map(editorState.selection.head, -1)),
-      -1
-    )
-  );
-  ((tr as unknown) as { updated: number }).updated &= ~1; // this was part of prosemirror-collab's mapselectionbackward, not sure what it does though
 
   return tr;
 }
