@@ -36,7 +36,12 @@ export interface CollabOptions {
   readonly params: SubscriptionParams;
   readonly startingVersion: number;
   readonly cable: Cable;
-  readonly syncSelection?: boolean;
+
+  /** Whether to send the user's cursor selection to the server. If a number, throttle updates by milliseconds (default: 500ms) */
+  readonly syncSelection?: boolean | number;
+
+  /** How many miliseconds to throttle commit sending. (default: 200ms) */
+  readonly commitThrottleMs: number;
 }
 
 class RailsCollabPlugin<S extends Schema> extends Plugin<PluginState, S> {

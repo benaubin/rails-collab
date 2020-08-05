@@ -8,6 +8,7 @@ import { PluginState, CollabOptions } from "./plugin";
 import pluginKey from "./plugin-key";
 import ReceivedCommitQueue from "./received-commit-queue";
 import { EditorState } from "prosemirror-state";
+import { Mapping } from "prosemirror-transform";
 
 export function isSynced(pluginState: PluginState) {
   return (
@@ -20,9 +21,15 @@ export default class CollabSession<S extends Schema> {
   transactionQueue: ReceivedCommitQueue;
   selectionInflight = false;
   channel: Channel;
+  commitThrottleMs: number;
+  selectionThrottleMS: number;
 
   constructor(view: EditorView<S>, opts: CollabOptions) {
     this.view = view;
+
+    this.commitThrottleMs = opts.commitThrottleMs || 200;
+    this.selectionThrottleMS =
+      typeof opts.syncSelection === "number" ? opts.syncSelection : 500;
 
     this.transactionQueue = new ReceivedCommitQueue(
       opts.startingVersion,
@@ -47,8 +54,7 @@ export default class CollabSession<S extends Schema> {
   }
 
   stateWasUpdated(_oldState: EditorState<S>) {
-    const commit = InflightCommit.fromState(this.view.state);
-    if (commit) this.channel.perform("commit", commit.sendable());
+    this.commit();
 
     const pluginState: PluginState = pluginKey.getState(this.view.state);
     if (pluginState.selectionNeedsSending) this.syncSelect();
@@ -61,6 +67,7 @@ export default class CollabSession<S extends Schema> {
   private onDataReceived(data: CommitData | { ack: "select" }) {
     if (data.ack === "select") {
       this.selectionInflight = false;
+
       if (pluginKey.getState(this.view.state).selectionNeedsSending)
         this.syncSelect();
     } else {
@@ -68,20 +75,51 @@ export default class CollabSession<S extends Schema> {
     }
   }
 
-  private get pluginState() {
+  private get pluginState(): PluginState<S> {
     return pluginKey.getState(this.view.state);
+  }
+
+  private commitScheduled = false;
+  private commit() {
+    if (this.commitScheduled) return;
+    this.commitScheduled = true;
+
+    window.setTimeout(() => {
+      this.commitScheduled = false;
+
+      const commit = InflightCommit.fromState(this.view.state);
+      if (commit) this.channel.perform("commit", commit.sendable());
+    }, this.commitThrottleMs);
   }
 
   private syncSelect() {
     if (this.selectionInflight) return;
+    this.selectionInflight = true;
 
-    if (isSynced(this.pluginState)) {
-      this.channel.perform("select", {
-        v: this.pluginState.syncedVersion,
-        head: this.view.state.selection.head,
-        anchor: this.view.state.selection.anchor,
-      });
-      this.pluginState.selectionNeedsSending = false;
-    }
+    setTimeout(() => {
+      const reverseUnsyncedMapping = new Mapping();
+      reverseUnsyncedMapping.appendMappingInverted(
+        this.pluginState.unsyncedMapping
+      );
+
+      try {
+        const selection = this.view.state.selection.map(
+          this.pluginState.lastSyncedDoc,
+          reverseUnsyncedMapping
+        );
+
+        this.channel.perform("select", {
+          v: this.pluginState.syncedVersion,
+          head: selection.head,
+          anchor: selection.anchor,
+        });
+
+        this.pluginState.selectionNeedsSending = false;
+      } catch (e) {
+        if (e instanceof RangeError) {
+          this.selectionInflight = false;
+        } else throw e;
+      }
+    }, this.selectionThrottleMS);
   }
 }
