@@ -9,8 +9,7 @@ module Collab
     def self.resolve(document, anchor_pos, head_pos, version:)
       anchor_assoc = anchor_pos > head_pos ? -1 : 1
 
-      ::Collab.config.tracked_position_model.constantize.resolve(
-        document,
+      document.resolve_positions(
         {"pos" => anchor_pos, "assoc" => anchor_assoc},
         {"pos" => head_pos, "assoc" => anchor_assoc * -1},
         version: version

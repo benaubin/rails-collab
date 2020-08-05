@@ -38,8 +38,9 @@ module Collab
       self.with_lock do
         return false unless self.possibly_saved_version? base_version
 
-        self.tracked_positions.where(references: 0).destroy_all
+        self.document_version += 1
 
+        self.tracked_positions.where(references: 0).destroy_all
         positions = self.tracked_positions.current.pluck(:id, :pos, :assoc)
         position_ids    = positions.map { |(id)| id }
         position_hashes = positions.map { |(_id, pos, assoc)| {pos: pos, assoc: assoc} }
@@ -50,15 +51,15 @@ module Collab
                                            pos: position_hashes,
                                            schema_name: schema_name
 
-        self.document_version = self.document_version + 1
         self.content = result["doc"]
-        self.save!
 
         commits.create!({
           steps: result["steps"],
           ref: data["ref"],
           document_version: self.document_version
         })
+
+        self.save!
 
         result["pos"].lazy.zip(position_ids) do |res, id|
           tracked_positions.update(id, res["deleted"] ? {deleted_at_version: self.document_version} : {pos: res["pos"]} )
@@ -89,8 +90,13 @@ module Collab
       v > 0 ? v : 0
     end
 
-    def with_resolved_position(pos, **kwargs)
-      ::Collab.config.tracked_position_model.constantize(self, pos, **kwargs)
+    def resolve_positions(*positions, **kwargs, &block)
+      ::Collab.config.tracked_position_model.constantize.resolve(self, *positions, **kwargs, &block)
+    end
+    alias :resolve_position :resolve_positions
+
+    def resolve_selection(anchor_pos, head_pos, version:, &block)
+      ::Collab::DocumentSelection.resolve(self, anchor_pos, head_pos, version: version, &block)
     end
 
     private
