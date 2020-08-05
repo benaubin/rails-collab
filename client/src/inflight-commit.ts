@@ -1,10 +1,11 @@
 import type { Schema } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
-import { compactRebaseable } from "./compact-steps";
 import { CommitData } from "./connection";
 import type { PluginState } from "./plugin";
 import key from "./plugin-key";
-import { Rebaseable } from "./rebaseable";
+import { Rebaseable, compactRebaseable } from "./rebaseable";
+
+const maxStepsPerCommit = 10;
 
 export class InflightCommit<S extends Schema> {
   readonly baseVersion: number;
@@ -45,7 +46,7 @@ export class InflightCommit<S extends Schema> {
     if (state.localSteps.length === 0) return;
 
     const sendableSteps = compactRebaseable(state.localSteps);
-    state.localSteps = sendableSteps.splice(9);
+    state.localSteps = sendableSteps.splice(maxStepsPerCommit - 1);
 
     state.inflightCommit = new InflightCommit(
       sendableSteps,
