@@ -23,7 +23,7 @@ function applyCommitSteps<S extends Schema>(
 
 const maxVersionMappings = 100;
 
-export function applyCommit<S extends Schema>(
+export function receiveCommitTransaction<S extends Schema>(
   editorState: EditorState<S>,
   commit: CommitData
 ): Transaction<S> {
@@ -33,6 +33,8 @@ export function applyCommit<S extends Schema>(
   tr.setMeta(key, state);
   tr.setMeta("addToHistory", false);
 
+  let unsyncedMapping: Mapping = new Mapping();
+  // The mapping for this commit from the previous commit
   let commitMapping: Mapping | undefined;
 
   state.syncedVersion += 1;
@@ -40,15 +42,21 @@ export function applyCommit<S extends Schema>(
   state.localSteps = rebaseSteps(tr, state.localSteps, () => {
     if (state.inflightCommit) {
       if (commit.ref === state.inflightCommit.ref) {
+        // We have a commit in flight and this is its confirmation
         commitMapping = new Mapping(
           state.inflightCommit.steps.map(({ step }) => step.getMap())
         );
 
         state.inflightCommit = undefined;
       } else {
+        // We have a commit inflight, but we need to rebase it over the one we just received
         const rebasedSteps = rebaseSteps(tr, state.inflightCommit.steps, () => {
           commitMapping = applyCommitSteps(tr, editorState.schema, commit);
         });
+
+        // Because the commit is still unsynced, we need to add its mapping to the unsyncedMapping
+        for (const { step } of rebasedSteps)
+          unsyncedMapping.appendMap(step.getMap());
 
         state.inflightCommit = new InflightCommit(
           rebasedSteps,
@@ -64,11 +72,8 @@ export function applyCommit<S extends Schema>(
   if (typeof commitMapping === "undefined")
     throw new Error("Collab: commitMapping undefined");
 
-  state.unsyncedMapping = new Mapping(
-    (state.inflightCommit?.steps.map(({ step }) => step.getMap()) || []).concat(
-      state.localSteps.map(({ step }) => step.getMap())
-    )
-  );
+  for (const { step } of state.localSteps)
+    unsyncedMapping.appendMap(step.getMap());
 
   state.versionMappings = state.versionMappings.slice(
     0,

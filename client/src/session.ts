@@ -1,7 +1,7 @@
 import type { Channel } from "actioncable";
 import type { Schema } from "prosemirror-model";
 import type { EditorView } from "prosemirror-view";
-import { applyCommit } from "./apply-commit";
+import { receiveCommitTransaction } from "./receive-commit";
 import { InflightCommit } from "./inflight-commit";
 import { CommitData } from "./connection";
 import { PluginState, CollabOptions } from "./plugin";
@@ -28,7 +28,7 @@ export default class CollabSession<S extends Schema> {
       opts.startingVersion,
       (batch) => {
         for (const commit of batch) {
-          const tr = applyCommit(this.view.state, commit);
+          const tr = receiveCommitTransaction(this.view.state, commit);
           this.view.dispatch(tr);
         }
       }
