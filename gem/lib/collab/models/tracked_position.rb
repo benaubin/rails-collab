@@ -21,9 +21,7 @@ module Collab
     def self.resolve(document, *positions, version:)
       raise false unless document.possibly_saved_version? version
 
-      document.transaction do
-        document.lock! "IN SHARE MODE"
-      
+      document.with_lock("FOR SHARE") do
         unless document.document_version == version 
           steps = document.commits.where("document_version > ?", @mapped_to).order(document_version: :asc).pluck(:steps).flatten(1)
 
