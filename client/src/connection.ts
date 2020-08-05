@@ -1,8 +1,9 @@
-export type CommitData = {
+export interface CommitData {
   v: number;
   steps: { [k: string]: unknown }[];
   ref?: string | null;
-};
+  ack?: never;
+}
 
 export interface SelectionData {
   v: number;

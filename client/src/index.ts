@@ -1,1 +1,2 @@
-export { railsCollab } from "./plugin";
+import railsCollab from "./plugin";
+export { railsCollab };

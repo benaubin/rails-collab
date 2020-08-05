@@ -1,137 +1,91 @@
 import type { Cable } from "actioncable";
 import type { Schema } from "prosemirror-model";
-import type { PluginSpec } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
+import type { PluginSpec } from "prosemirror-state";
+import { Mapping } from "prosemirror-transform";
+import { InflightCommit } from "./inflight-commit";
 import { SubscriptionParams } from "./connection";
-import { applyCommits, InflightCommit } from "./commits";
+import { pluginKey as key } from "./plugin-key";
 import { Rebaseable, transformToRebaseable } from "./rebaseable";
-import pluginKey, { pluginKey as key } from "./plugin-key";
-import ReceivedCommitQueue from "./received-commit-queue";
+import CollabSession from "./session";
 
 export interface PluginState<S extends Schema = Schema> {
   localSteps: Rebaseable<S>[];
 
   inflightCommit?: InflightCommit<S>;
 
+  /** a list of mappings for each version, in reverse order.
+   *
+   * versionMappings[i] = mapping from (syncedVersion - i - 1) to (syncedVersion - i)
+   * versionMappings[0] = mapping from (syncedVersion - 1) to (syncedVersion)
+   * versionMappings[1] = mapping from (syncedVersion - 2) to (syncedVersion - 1)
+   * versionMappings[2] = mapping from (syncedVersion - 3) to (syncedVersion - 2)
+   * ...
+   */
+  versionMappings: Mapping[];
+
+  unsyncedMapping: Mapping;
+
   syncedVersion: number;
   selectionNeedsSending?: boolean;
 }
 
-function isSynced(pluginState: PluginState) {
-  return (
-    pluginState.inflightCommit == null && pluginState.localSteps.length == 0
-  );
-}
-
-export function railsCollab<S extends Schema>({
-  params,
-  startingVersion,
-  cable,
-  syncSelection,
-  onSyncStatusChanged,
-}: {
-  params: SubscriptionParams;
-  startingVersion: number;
-  cable: Cable;
-  syncSelection?: boolean;
+export interface CollabOptions {
+  readonly params: SubscriptionParams;
+  readonly startingVersion: number;
+  readonly cable: Cable;
+  readonly syncSelection?: boolean;
   /**
    * Called when the editor has local changes, and again once those changes have been confirmed by the server.
    *
    * Useful for indictating "saved" satus to the user.
    */
-  onSyncStatusChanged(synced: false | true): void;
-}) {
+  onSyncStatusChanged(event: {
+    synced: boolean;
+    syncedVersion: number;
+    mappingToLocal: Mapping;
+  }): void;
+}
+
+export default function railsCollab<S extends Schema>(opts: CollabOptions) {
   return new Plugin<PluginState, S>({
     key,
     state: {
       init: () => ({
         localSteps: [],
-        syncedVersion: startingVersion,
+        unsyncedMapping: new Mapping(),
+        versionMappings: [],
+        syncedVersion: opts.startingVersion,
         selectionNeedsSending: true,
       }),
       apply(tr, oldState) {
-        let state = tr.getMeta(key);
+        let state: PluginState | undefined = tr.getMeta(key);
         if (state == null) {
           state = { ...oldState };
-          if (tr.docChanged)
+          if (tr.docChanged) {
+            state.unsyncedMapping = state.unsyncedMapping.slice(0);
+            state.unsyncedMapping.appendMapping(tr.mapping);
             state.localSteps = state.localSteps.concat(
               transformToRebaseable(tr)
             );
+          }
         }
 
-        if (syncSelection && tr.selectionSet)
+        if (opts.syncSelection && tr.selectionSet)
           state.selectionNeedsSending = true;
 
         return state;
       },
     },
     view(view) {
-      let selectionInflight = false;
-
-      const transactionQueue = new ReceivedCommitQueue(
-        startingVersion,
-        (batch) => {
-          view.dispatch(applyCommits(view.state, batch));
-        }
-      );
-
-      const channel = cable.subscriptions.create(
-        {
-          channel: "CollabDocumentChannel",
-          startingVersion,
-          ...params,
-        },
-        {
-          received: (data) => {
-            if (data.ack === "select") {
-              selectionInflight = false;
-              if (pluginKey.getState(view.state).selectionNeedsSending)
-                syncSelect();
-            } else {
-              transactionQueue.receive(data);
-            }
-          },
-        }
-      );
-
-      let wasSynced = true;
-
-      const syncSelect = () => {
-        if (selectionInflight) return;
-
-        const pluginState: PluginState = pluginKey.getState(view.state);
-
-        if (isSynced(pluginState)) {
-          channel.perform("select", {
-            v: pluginState.syncedVersion,
-            head: view.state.selection.head,
-            anchor: view.state.selection.anchor,
-          });
-          pluginState.selectionNeedsSending = false;
-        }
-      };
-
-      const { dispatchTransaction } = view.props;
-      view.props.dispatchTransaction = (tr) => {
-        if (dispatchTransaction) dispatchTransaction.call(view, tr);
-        else view.updateState(view.state.apply(tr));
-
-        const commit = InflightCommit.fromState(view.state);
-        if (commit) channel.perform("commit", commit.sendable());
-
-        const pluginState: PluginState = pluginKey.getState(view.state);
-        if (pluginState.selectionNeedsSending) syncSelect();
-
-        const synced = isSynced(pluginState);
-        if (synced !== wasSynced) {
-          onSyncStatusChanged(synced);
-          wasSynced = synced;
-        }
-      };
+      const session = new CollabSession(view, opts);
 
       return {
+        update(_, oldState) {
+          session.stateWasUpdated(oldState);
+        },
         destroy() {
-          channel.unsubscribe();
+          session.destroy();
         },
       };
     },
