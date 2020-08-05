@@ -1,5 +1,5 @@
 import type { Cable } from "actioncable";
-import type { Schema } from "prosemirror-model";
+import type { Schema, Node } from "prosemirror-model";
 import { Plugin, EditorState } from "prosemirror-state";
 import type { PluginSpec } from "prosemirror-state";
 import { Mapping } from "prosemirror-transform";
@@ -13,6 +13,8 @@ export interface PluginState<S extends Schema = Schema> {
   localSteps: Rebaseable<S>[];
 
   inflightCommit?: InflightCommit<S>;
+
+  lastSyncedDoc: Node<S>;
 
   /** a list of mappings for each version, in reverse order.
    *
@@ -42,17 +44,19 @@ class RailsCollabPlugin<S extends Schema> extends Plugin<PluginState, S> {
     super({
       key,
       state: {
-        init: () => ({
+        init: (_config, state) => ({
           localSteps: [],
           unsyncedMapping: new Mapping(),
           versionMappings: [],
           syncedVersion: opts.startingVersion,
           selectionNeedsSending: true,
+          lastSyncedDoc: state.doc,
         }),
         apply(tr, oldState) {
           let state: PluginState | undefined = tr.getMeta(key);
           if (state == null) {
             state = { ...oldState };
+
             if (tr.docChanged) {
               state.unsyncedMapping = state.unsyncedMapping.slice(0);
               state.unsyncedMapping.appendMapping(tr.mapping);

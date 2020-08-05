@@ -48,10 +48,15 @@ export function receiveCommitTransaction<S extends Schema>(
         );
 
         state.inflightCommit = undefined;
+        // Set lastSyncedDoc before redoing the localSteps
+        state.lastSyncedDoc = tr.doc;
       } else {
         // We have a commit inflight, but we need to rebase it over the one we just received
         const rebasedSteps = rebaseSteps(tr, state.inflightCommit.steps, () => {
+          // Apply the steps in the commit we just received
           commitMapping = applyCommitSteps(tr, editorState.schema, commit);
+          // Set lastSyncedDoc before redoing the inflight commit
+          state.lastSyncedDoc = tr.doc;
         });
 
         // Because the commit is still unsynced, we need to add its mapping to the unsyncedMapping
@@ -65,7 +70,9 @@ export function receiveCommitTransaction<S extends Schema>(
         );
       }
     } else {
+      // Super simple if we don't have a commit inflight, just apply the steps in this commit
       commitMapping = applyCommitSteps(tr, editorState.schema, commit);
+      state.lastSyncedDoc = tr.doc;
     }
   });
 
