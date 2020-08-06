@@ -12,7 +12,12 @@ import {
 } from "prosemirror-state";
 import { EditorView, Decoration, DecorationSet } from "prosemirror-view";
 import "prosemirror-view/style/prosemirror.css";
-import { railsCollab } from "rails-collab";
+import {
+  railsCollab,
+  actionCableNetwork,
+  isSynced,
+  mappingFromVersion,
+} from "rails-collab";
 import "regenerator-runtime/runtime";
 
 const cable = ActionCable.createConsumer();
@@ -23,14 +28,15 @@ function loadEditor() {
   for (const editorEl of editors) {
     const data = JSON.parse(editorEl.dataset.collaborativeEditor);
 
-    const collab = railsCollab({
-      cable,
-      startingVersion: data.version,
-      params: { document_id: data.id },
-      syncSelection: true,
-    });
+    const collab = railsCollab(
+      actionCableNetwork(cable, { document_id: data.id }),
+      {
+        cable,
+        startingVersion: data.version,
+        syncSelection: true,
+      }
+    );
 
-    const selections = {};
     new EditorView(editorEl, {
       state: EditorState.create({
         doc: schema.nodeFromJSON(data.content),
@@ -79,7 +85,7 @@ function loadEditor() {
 
                   val.queuedSelections = val.queuedSelections.filter(
                     ({ v, head, anchor, client_id }) => {
-                      const mapping = collab.mappingFromVersion(editorState, v);
+                      const mapping = mappingFromVersion(editorState, v);
                       if (!mapping) return true;
 
                       let decorations = val.selectionDecorations[client_id];
@@ -140,7 +146,7 @@ function loadEditor() {
         const newState = this.state.apply(tr);
         this.updateState(newState);
 
-        const synced = collab.isCollabSynced(newState);
+        const synced = isSynced(collab.getState(newState));
 
         document.getElementById("save-status").innerText = synced
           ? "Saved"

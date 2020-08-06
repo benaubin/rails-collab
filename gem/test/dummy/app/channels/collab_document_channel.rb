@@ -25,11 +25,4 @@ class CollabDocumentChannel < ApplicationCable::Channel
       @document_client = DocumentClient.create document: d
     end
   end
-
-  # Called a commit is first received for processing
-  # Throw an error to prevent the commit from being processed
-  # You should consider adding some type of rate-limiting here
-  def authorize_commit!(data)
-    # no-op
-  end
 end
