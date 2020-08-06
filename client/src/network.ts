@@ -71,10 +71,17 @@ export class CollabSession {
     return typeof this.connection !== "undefined";
   }
 
+  selectionThrottleMS: number;
+  commitThrottleMs: number;
+
   constructor(
     network: CollabNetworkAdapter,
     startingVersion: number,
-    callbacks: SessionCallbacks
+    callbacks: SessionCallbacks,
+    opts: {
+      selectionThrottleMS: number;
+      commitThrottleMs: number;
+    }
   ) {
     this.network = network;
     this.callbacks = callbacks;
@@ -84,6 +91,9 @@ export class CollabSession {
     });
 
     this.connectionPromise = this.connect();
+
+    this.commitThrottleMs = opts.commitThrottleMs;
+    this.selectionThrottleMS = opts.selectionThrottleMS;
   }
 
   async connect() {
@@ -112,7 +122,6 @@ export class CollabSession {
   }
 
   private selectScheduled = false;
-  private selectionThrottleMS = 500;
 
   sendSelection(): Promise<void> | undefined {
     if (this.selectScheduled) return;
@@ -131,7 +140,6 @@ export class CollabSession {
   }
 
   private commitScheduled = false;
-  private commitThrottleMs = 200;
 
   commit() {
     if (this.commitScheduled) return;

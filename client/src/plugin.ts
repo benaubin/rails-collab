@@ -85,33 +85,42 @@ class RailsCollabPlugin<S extends Schema> extends Plugin<PluginState, S> {
         },
       },
       view(view) {
-        const session = new CollabSession(network, opts.startingVersion, {
-          onClose: opts.onConnectionClose,
-          processCommit(commit) {
-            const tr = receiveCommitTransaction(view.state, commit);
-            view.dispatch(tr);
-          },
-          getSendableCommit() {
-            const inflightCommit = InflightCommit.fromState(view.state);
-            if (inflightCommit) return inflightCommit.sendable();
-          },
-          getSendableSelection() {
-            const pluginState = key.getState(view.state);
-            const selection = mapBackToSyncedVersion(
-              pluginState,
-              view.state.selection
-            );
+        const session = new CollabSession(
+          network,
+          opts.startingVersion,
+          {
+            onClose: opts.onConnectionClose,
+            processCommit(commit) {
+              const tr = receiveCommitTransaction(view.state, commit);
+              view.dispatch(tr);
+            },
+            getSendableCommit() {
+              const inflightCommit = InflightCommit.fromState(view.state);
+              if (inflightCommit) return inflightCommit.sendable();
+            },
+            getSendableSelection() {
+              const pluginState = key.getState(view.state);
+              const selection = mapBackToSyncedVersion(
+                pluginState,
+                view.state.selection
+              );
 
-            if (selection) {
-              pluginState.selectionNeedsSending = false;
-              return {
-                v: pluginState.syncedVersion,
-                head: selection.head,
-                anchor: selection.anchor,
-              };
-            }
+              if (selection) {
+                pluginState.selectionNeedsSending = false;
+                return {
+                  v: pluginState.syncedVersion,
+                  head: selection.head,
+                  anchor: selection.anchor,
+                };
+              }
+            },
           },
-        });
+          {
+            selectionThrottleMS:
+              typeof opts.syncSelection === "number" ? opts.syncSelection : 500,
+            commitThrottleMs: opts.commitThrottleMs,
+          }
+        );
 
         const syncSelection: () => void = async () => {
           while (key.getState(view.state).selectionNeedsSending) {
