@@ -6,7 +6,8 @@
   "sideEffects": [],
   "scripts": {
     "build": "rm -rf dist && rollup -c",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -20,17 +21,23 @@
   "homepage": "https://github.com/benaubin/rails-collab#readme",
   "devDependencies": {
     "@types/actioncable": "^5.2.3",
+    "@types/jest": "^26.0.9",
     "@types/prosemirror-collab": "^1.1.0",
     "@types/prosemirror-model": "^1.7.2",
     "@types/prosemirror-state": "^1.2.5",
+    "@types/prosemirror-test-builder": "^1.0.1",
     "@types/prosemirror-transform": "^1.1.1",
     "@wessberg/rollup-plugin-ts": "^1.2.34",
+    "jest": "^26.2.2",
     "prosemirror-state": "^1.3.3",
     "prosemirror-transform": "^1.2.7",
     "rollup": "^2.23.0",
+    "ts-jest": "^26.1.4",
     "typescript": "^3.9.7"
   },
-  "dependencies": {},
+  "dependencies": {
+    "prosemirror-test-builder": "^1.0.3"
+  },
   "peerDependencies": {
     "prosemirror-state": "^1.2.5",
     "prosemirror-transform": "^1.1.1"

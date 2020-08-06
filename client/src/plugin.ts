@@ -45,7 +45,7 @@ export interface CollabOptions {
   readonly syncSelection?: boolean | number;
 
   /** How many miliseconds to throttle commit sending. (default: 200ms) */
-  readonly commitThrottleMs: number;
+  readonly commitThrottleMs?: number;
 
   /** Called if the connection closes and cannot be recovered */
   readonly onConnectionClose: (e?: Error) => void;
@@ -118,7 +118,7 @@ class RailsCollabPlugin<S extends Schema> extends Plugin<PluginState, S> {
           {
             selectionThrottleMS:
               typeof opts.syncSelection === "number" ? opts.syncSelection : 500,
-            commitThrottleMs: opts.commitThrottleMs,
+            commitThrottleMs: opts.commitThrottleMs || 200,
           }
         );
 

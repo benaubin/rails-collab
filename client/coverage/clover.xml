@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1596757553630" clover="3.2.0">
+  <project timestamp="1596757553630" name="All files">
+    <metrics statements="239" coveredstatements="141" conditionals="85" coveredconditionals="26" methods="63" coveredmethods="25" elements="387" coveredelements="192" complexity="0" loc="239" ncloc="239" packages="2" files="10" classes="10"/>
+    <package name="src">
+      <metrics statements="217" coveredstatements="140" conditionals="77" coveredconditionals="26" methods="51" coveredmethods="25"/>
+      <file name="index.ts" path="/Users/ben/Workspace/mintere/collab/client/src/index.ts">
+        <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="0"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="6" count="2" type="stmt"/>
+      </file>
+      <file name="inflight-commit.ts" path="/Users/ben/Workspace/mintere/collab/client/src/inflight-commit.ts">
+        <metrics statements="21" coveredstatements="20" conditionals="7" coveredconditionals="6" methods="6" coveredmethods="6"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="8" count="2" type="stmt"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="20" count="8" type="stmt"/>
+        <line num="21" count="8" type="stmt"/>
+        <line num="22" count="8" type="stmt"/>
+        <line num="26" count="2" type="stmt"/>
+        <line num="29" count="2" type="stmt"/>
+        <line num="34" count="4" type="stmt"/>
+        <line num="36" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="39" count="4" type="stmt"/>
+        <line num="42" count="32" type="stmt"/>
+        <line num="48" count="6" type="stmt"/>
+        <line num="51" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="52" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="54" count="4" type="stmt"/>
+        <line num="55" count="4" type="stmt"/>
+        <line num="57" count="4" type="stmt"/>
+        <line num="62" count="4" type="stmt"/>
+      </file>
+      <file name="mapping.ts" path="/Users/ben/Workspace/mintere/collab/client/src/mapping.ts">
+        <metrics statements="20" coveredstatements="4" conditionals="4" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="11" count="2" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="21" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="27" count="2" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="34" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+      </file>
+      <file name="network.ts" path="/Users/ben/Workspace/mintere/collab/client/src/network.ts">
+        <metrics statements="39" coveredstatements="2" conditionals="26" coveredconditionals="0" methods="13" coveredmethods="0"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="56" count="2" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="89" count="0" type="stmt"/>
+        <line num="90" count="0" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="100" count="0" type="stmt"/>
+        <line num="101" count="0" type="stmt"/>
+        <line num="105" count="0" type="stmt"/>
+        <line num="106" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="107" count="0" type="stmt"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="110" count="0" type="stmt"/>
+        <line num="119" count="0" type="stmt"/>
+        <line num="123" count="0" type="stmt"/>
+        <line num="127" count="0" type="stmt"/>
+        <line num="130" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="131" count="0" type="stmt"/>
+        <line num="133" count="0" type="stmt"/>
+        <line num="134" count="0" type="stmt"/>
+        <line num="135" count="0" type="stmt"/>
+        <line num="137" count="0" type="stmt"/>
+        <line num="138" count="0" type="cond" truecount="0" falsecount="6"/>
+        <line num="140" count="0" type="stmt"/>
+        <line num="145" count="0" type="stmt"/>
+        <line num="148" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="149" count="0" type="stmt"/>
+        <line num="151" count="0" type="stmt"/>
+        <line num="152" count="0" type="stmt"/>
+        <line num="154" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="156" count="0" type="stmt"/>
+        <line num="157" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="162" count="0" type="stmt"/>
+        <line num="163" count="0" type="cond" truecount="0" falsecount="4"/>
+      </file>
+      <file name="plugin-key.ts" path="/Users/ben/Workspace/mintere/collab/client/src/plugin-key.ts">
+        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+      </file>
+      <file name="plugin.ts" path="/Users/ben/Workspace/mintere/collab/client/src/plugin.ts">
+        <metrics statements="43" coveredstatements="22" conditionals="20" coveredconditionals="4" methods="12" coveredmethods="4"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="6" count="2" type="stmt"/>
+        <line num="7" count="2" type="stmt"/>
+        <line num="8" count="2" type="stmt"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="12" count="2" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="56" count="2" type="stmt"/>
+        <line num="59" count="2" type="stmt"/>
+        <line num="68" count="6" type="stmt"/>
+        <line num="69" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="70" count="6" type="stmt"/>
+        <line num="72" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="73" count="6" type="stmt"/>
+        <line num="74" count="6" type="stmt"/>
+        <line num="75" count="6" type="stmt"/>
+        <line num="81" count="6" type="cond" truecount="2" falsecount="2"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="84" count="6" type="stmt"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="94" count="0" type="stmt"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="98" count="0" type="stmt"/>
+        <line num="99" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="103" count="0" type="stmt"/>
+        <line num="108" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="110" count="0" type="stmt"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="126" count="0" type="stmt"/>
+        <line num="127" count="0" type="stmt"/>
+        <line num="128" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="129" count="0" type="stmt"/>
+        <line num="133" count="0" type="stmt"/>
+        <line num="135" count="0" type="stmt"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="139" count="0" type="stmt"/>
+        <line num="148" count="2" type="stmt"/>
+        <line num="152" count="2" type="stmt"/>
+      </file>
+      <file name="rebaseable.ts" path="/Users/ben/Workspace/mintere/collab/client/src/rebaseable.ts">
+        <metrics statements="36" coveredstatements="34" conditionals="12" coveredconditionals="8" methods="8" coveredmethods="8"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="10" count="17" type="stmt"/>
+        <line num="11" count="17" type="stmt"/>
+        <line num="15" count="4" type="stmt"/>
+        <line num="19" count="4" type="stmt"/>
+        <line num="32" count="2" type="stmt"/>
+        <line num="38" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="39" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="43" count="6" type="stmt"/>
+        <line num="46" count="6" type="stmt"/>
+        <line num="48" count="6" type="stmt"/>
+        <line num="50" count="6" type="stmt"/>
+        <line num="52" count="6" type="stmt"/>
+        <line num="54" count="4" type="stmt"/>
+        <line num="55" count="4" type="stmt"/>
+        <line num="56" count="4" type="stmt"/>
+        <line num="58" count="4" type="stmt"/>
+        <line num="60" count="4" type="stmt"/>
+        <line num="61" count="4" type="cond" truecount="3" falsecount="1"/>
+        <line num="63" count="4" type="stmt"/>
+        <line num="65" count="4" type="stmt"/>
+        <line num="70" count="2" type="stmt"/>
+        <line num="71" count="6" type="stmt"/>
+        <line num="72" count="8" type="stmt"/>
+        <line num="76" count="2" type="stmt"/>
+        <line num="79" count="4" type="stmt"/>
+        <line num="80" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="82" count="4" type="stmt"/>
+        <line num="83" count="4" type="stmt"/>
+        <line num="84" count="1" type="stmt"/>
+        <line num="86" count="1" type="stmt"/>
+        <line num="88" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="89" count="1" type="stmt"/>
+        <line num="91" count="0" type="stmt"/>
+        <line num="95" count="4" type="stmt"/>
+      </file>
+      <file name="receive-commit.ts" path="/Users/ben/Workspace/mintere/collab/client/src/receive-commit.ts">
+        <metrics statements="38" coveredstatements="38" conditionals="4" coveredconditionals="4" methods="5" coveredmethods="5"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="6" count="2" type="stmt"/>
+        <line num="7" count="2" type="stmt"/>
+        <line num="8" count="2" type="stmt"/>
+        <line num="15" count="3" type="stmt"/>
+        <line num="16" count="3" type="stmt"/>
+        <line num="17" count="3" type="stmt"/>
+        <line num="18" count="3" type="stmt"/>
+        <line num="19" count="3" type="stmt"/>
+        <line num="21" count="3" type="stmt"/>
+        <line num="24" count="2" type="stmt"/>
+        <line num="26" count="2" type="stmt"/>
+        <line num="30" count="4" type="stmt"/>
+        <line num="31" count="4" type="stmt"/>
+        <line num="33" count="4" type="stmt"/>
+        <line num="34" count="4" type="stmt"/>
+        <line num="36" count="4" type="stmt"/>
+        <line num="40" count="4" type="stmt"/>
+        <line num="42" count="4" type="stmt"/>
+        <line num="43" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="44" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="46" count="1" type="stmt"/>
+        <line num="47" count="1" type="stmt"/>
+        <line num="50" count="1" type="stmt"/>
+        <line num="52" count="1" type="stmt"/>
+        <line num="55" count="2" type="stmt"/>
+        <line num="57" count="2" type="stmt"/>
+        <line num="59" count="2" type="stmt"/>
+        <line num="63" count="2" type="stmt"/>
+        <line num="64" count="2" type="stmt"/>
+        <line num="66" count="2" type="stmt"/>
+        <line num="74" count="1" type="stmt"/>
+        <line num="75" count="1" type="stmt"/>
+        <line num="79" count="4" type="stmt"/>
+        <line num="80" count="2" type="stmt"/>
+        <line num="82" count="4" type="stmt"/>
+        <line num="86" count="4" type="stmt"/>
+        <line num="88" count="4" type="stmt"/>
+      </file>
+      <file name="received-commit-queue.ts" path="/Users/ben/Workspace/mintere/collab/client/src/received-commit-queue.ts">
+        <metrics statements="12" coveredstatements="12" conditionals="4" coveredconditionals="4" methods="2" coveredmethods="2"/>
+        <line num="4" count="3" type="stmt"/>
+        <line num="5" count="3" type="stmt"/>
+        <line num="13" count="3" type="stmt"/>
+        <line num="14" count="3" type="stmt"/>
+        <line num="18" count="22" type="cond" truecount="2" falsecount="0"/>
+        <line num="20" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="21" count="10" type="stmt"/>
+        <line num="22" count="10" type="stmt"/>
+        <line num="25" count="10" type="stmt"/>
+        <line num="26" count="3" type="stmt"/>
+        <line num="27" count="3" type="stmt"/>
+        <line num="30" count="3" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.network-adapters">
+      <metrics statements="22" coveredstatements="1" conditionals="8" coveredconditionals="0" methods="12" coveredmethods="0"/>
+      <file name="actioncable.ts" path="/Users/ben/Workspace/mintere/collab/client/src/network-adapters/actioncable.ts">
+        <metrics statements="22" coveredstatements="1" conditionals="8" coveredconditionals="0" methods="12" coveredmethods="0"/>
+        <line num="15" count="2" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="53" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="58" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="59" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="70" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="87" count="0" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>

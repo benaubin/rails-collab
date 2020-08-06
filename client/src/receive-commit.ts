@@ -35,7 +35,7 @@ export function receiveCommitTransaction<S extends Schema>(
 
   let unsyncedMapping: Mapping = new Mapping();
   // The mapping for this commit from the previous commit
-  let commitMapping: Mapping | undefined;
+  let commitMapping!: Mapping;
 
   state.syncedVersion += 1;
 
@@ -75,9 +75,6 @@ export function receiveCommitTransaction<S extends Schema>(
       state.lastSyncedDoc = tr.doc;
     }
   });
-
-  if (typeof commitMapping === "undefined")
-    throw new Error("Collab: commitMapping undefined");
 
   for (const { step } of state.localSteps)
     unsyncedMapping.appendMap(step.getMap());

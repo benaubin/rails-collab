@@ -1,23 +1,20 @@
 import type { CommitData } from "./network";
 
 /** Reorders commits received out of order */
-export default class ReceivedCommitQueue {
+export default class ReceivedCommitQueue<T extends { v: number } = CommitData> {
   private queue: {
-    [version: number]: CommitData | undefined;
+    [version: number]: T | undefined;
   } = {};
 
   nextVersion: number;
-  onCommit: (commit: CommitData) => void;
+  private onCommit: (commit: T) => void;
 
-  constructor(
-    startingVersion: number,
-    onCommit: ReceivedCommitQueue["onCommit"]
-  ) {
+  constructor(startingVersion: number, onCommit: (commit: T) => void) {
     this.nextVersion = startingVersion + 1;
     this.onCommit = onCommit;
   }
 
-  receive(commit: CommitData) {
+  receive(commit: T) {
     if (this.nextVersion > commit.v) return; // This is an old commit - ignore it.
 
     if (this.nextVersion === commit.v) {
