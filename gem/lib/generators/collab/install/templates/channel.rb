@@ -1,9 +1,13 @@
 class CollabDocumentChannel < ApplicationCable::Channel
-  prepend Collab::Channel
+  include Collab::Channel
 
-  # def select(selection)
-  #   handle the user's selection here
-  # end
+  def commit(data)
+    if false # replace with your own authorization logic
+      raise "authorization not implemented"
+    end
+
+    super # make sure to call super in order to process the commit
+  end
 
   private
 
@@ -12,15 +16,14 @@ class CollabDocumentChannel < ApplicationCable::Channel
   def find_document
     Collab::Models::Document.find(params[:document_id]).tap do |document|
       # TODO: Replace with your own authorization logic
-      raise "authorization not implemented"
+      reject_unauthorized_connection
     end
   end
 
-  # Called a commit is first received for processing
-  # Throw an error to prevent the commit from being processed
-  # You should consider adding some type of rate-limiting here
-  def authorize_commit!(data)
-    # TODO: Replace with your own authorization logic
-    raise "authorization not implemented"
-  end
+  # Uncomment this line to receive the user's selection
+  # You must allow enable syncSelection on the client
+  #
+  # def _select(selection)
+  #   ...
+  # end
 end

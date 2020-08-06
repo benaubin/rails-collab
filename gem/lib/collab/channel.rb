@@ -1,7 +1,7 @@
 module Collab
   module Channel
     def subscribed
-      @document = find_document
+      reject_unauthorized_connection unless @document = find_document
   
       starting_version = params[:startingVersion]&.to_i
       raise "missing startingVersion" if starting_version.nil?
@@ -21,7 +21,6 @@ module Collab
     end
 
     def commit(data)
-      authorize_commit!(data)
       @document.apply_commit(data)
     end
 
