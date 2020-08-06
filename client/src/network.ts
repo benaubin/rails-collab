@@ -98,24 +98,27 @@ export class CollabSession {
 
   async connect() {
     try {
-      return this.network.connect(this.commitQueue.nextVersion - 1, {
-        onDisconnect: (unrecoverable) => {
-          this.connection = undefined;
-          if (this.shouldReconnect && !unrecoverable) {
-            this.connectionPromise = this.connect();
-          } else {
-            this.connectionPromise = undefined as never;
-            this.callbacks.onClose(
-              unrecoverable
-                ? unrecoverable === true
-                  ? new Error("Unrecoverable connection disconnect")
-                  : unrecoverable
-                : undefined
-            );
-          }
-        },
-        onReceivedCommit: (c) => this.commitQueue.receive(c),
-      });
+      return (this.connection = await this.network.connect(
+        this.commitQueue.nextVersion - 1,
+        {
+          onDisconnect: (unrecoverable) => {
+            this.connection = undefined;
+            if (this.shouldReconnect && !unrecoverable) {
+              this.connectionPromise = this.connect();
+            } else {
+              this.connectionPromise = undefined as never;
+              this.callbacks.onClose(
+                unrecoverable
+                  ? unrecoverable === true
+                    ? new Error("Unrecoverable connection disconnect")
+                    : unrecoverable
+                  : undefined
+              );
+            }
+          },
+          onReceivedCommit: (c) => this.commitQueue.receive(c),
+        }
+      ));
     } catch (e) {
       this.callbacks.onClose(e);
     }
