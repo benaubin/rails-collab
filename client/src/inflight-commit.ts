@@ -1,9 +1,9 @@
 import type { Schema } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
-import { CommitData } from "./connection";
 import type { PluginState } from "./plugin";
 import key from "./plugin-key";
-import { Rebaseable, compactRebaseable } from "./rebaseable";
+import { compactRebaseable, Rebaseable } from "./rebaseable";
+import { CommitData } from "./network";
 
 const maxStepsPerCommit = 10;
 

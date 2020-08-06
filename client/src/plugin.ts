@@ -1,13 +1,19 @@
-import type { Cable } from "actioncable";
-import type { Schema, Node } from "prosemirror-model";
-import { Plugin, EditorState } from "prosemirror-state";
+import type { Node, Schema } from "prosemirror-model";
+import { Plugin } from "prosemirror-state";
 import type { PluginSpec } from "prosemirror-state";
 import { Mapping } from "prosemirror-transform";
 import { InflightCommit } from "./inflight-commit";
-import { SubscriptionParams } from "./connection";
+import { mapBackToSyncedVersion } from "./mapping";
+import { CollabSession, CollabNetworkAdapter } from "./network";
 import { pluginKey as key } from "./plugin-key";
 import { Rebaseable, transformToRebaseable } from "./rebaseable";
-import CollabSession, { isSynced } from "./session";
+import { receiveCommitTransaction } from "./receive-commit";
+
+export function isSynced(pluginState: PluginState) {
+  return (
+    pluginState.inflightCommit == null && pluginState.localSteps.length == 0
+  );
+}
 
 export interface PluginState<S extends Schema = Schema> {
   localSteps: Rebaseable<S>[];
@@ -33,19 +39,20 @@ export interface PluginState<S extends Schema = Schema> {
 }
 
 export interface CollabOptions {
-  readonly params: SubscriptionParams;
   readonly startingVersion: number;
-  readonly cable: Cable;
 
   /** Whether to send the user's cursor selection to the server. If a number, throttle updates by milliseconds (default: 500ms) */
   readonly syncSelection?: boolean | number;
 
   /** How many miliseconds to throttle commit sending. (default: 200ms) */
   readonly commitThrottleMs: number;
+
+  /** Called if the connection closes and cannot be recovered */
+  readonly onConnectionClose: (e?: Error) => void;
 }
 
 class RailsCollabPlugin<S extends Schema> extends Plugin<PluginState, S> {
-  constructor(opts: CollabOptions) {
+  constructor(network: CollabNetworkAdapter, opts: CollabOptions) {
     super({
       key,
       state: {
@@ -78,44 +85,60 @@ class RailsCollabPlugin<S extends Schema> extends Plugin<PluginState, S> {
         },
       },
       view(view) {
-        const session = new CollabSession(view, opts);
+        const session = new CollabSession(network, opts.startingVersion, {
+          onClose: opts.onConnectionClose,
+          processCommit(commit) {
+            const tr = receiveCommitTransaction(view.state, commit);
+            view.dispatch(tr);
+          },
+          getSendableCommit() {
+            const inflightCommit = InflightCommit.fromState(view.state);
+            if (inflightCommit) return inflightCommit.sendable();
+          },
+          getSendableSelection() {
+            const pluginState = key.getState(view.state);
+            const selection = mapBackToSyncedVersion(
+              pluginState,
+              view.state.selection
+            );
+
+            if (selection) {
+              pluginState.selectionNeedsSending = false;
+              return {
+                v: pluginState.syncedVersion,
+                head: selection.head,
+                anchor: selection.anchor,
+              };
+            }
+          },
+        });
+
+        const syncSelection: () => void = async () => {
+          while (key.getState(view.state).selectionNeedsSending) {
+            const syncPromise = session.sendSelection();
+            if (!syncPromise) return;
+            await syncPromise;
+          }
+        };
 
         return {
-          update(_, oldState) {
-            session.stateWasUpdated(oldState);
+          update(_) {
+            session.commit();
+            syncSelection();
           },
-          destroy() {
-            session.destroy();
+          async destroy() {
+            session.close();
           },
         };
       },
       historyPreserveItems: true,
     } as PluginSpec<PluginState, S>);
   }
-
-  isCollabSynced(state: EditorState<S>) {
-    return isSynced(this.getState(state));
-  }
-
-  mappingFromVersion(state: EditorState<S>, version: number) {
-    const pluginState = this.getState(state);
-    let behind = pluginState.syncedVersion - version;
-
-    if (behind < 0)
-      // too early to get a mapping for this version
-      return false;
-
-    const mapping = new Mapping();
-
-    for (; behind > 0; behind--)
-      mapping.appendMapping(pluginState.versionMappings[behind]);
-
-    mapping.appendMapping(pluginState.unsyncedMapping);
-
-    return mapping;
-  }
 }
 
-export default function railsCollab<S extends Schema>(opts: CollabOptions) {
-  return new RailsCollabPlugin<S>(opts);
+export default function railsCollab<S extends Schema>(
+  network: CollabNetworkAdapter,
+  opts: CollabOptions
+) {
+  return new RailsCollabPlugin<S>(network, opts);
 }

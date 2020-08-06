@@ -1,7 +1,7 @@
 import type { Schema } from "prosemirror-model";
 import type { EditorState, Transaction } from "prosemirror-state";
 import { Step, Mapping } from "prosemirror-transform";
-import { CommitData } from "./connection";
+import { CommitData } from "./network";
 import type { PluginState } from "./plugin";
 import key from "./plugin-key";
 import { rebaseSteps } from "./rebaseable";
