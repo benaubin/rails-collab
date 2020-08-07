@@ -194,4 +194,44 @@ describe(receiveCommitTransaction, () => {
       new Rebaseable(tr3.steps[6], tr3.docs[6]),
     ]);
   });
+
+  test("receiving a commit that conflicts with local changes", () => {
+    const tr1 = state.tr;
+    tr1.insertText("!", sentenceEnd, sentenceEnd);
+    tr1.insertText("doc", wordEnd + 1, sentenceEnd);
+    const stateWithLocalChanges = state.apply(tr1);
+
+    const conflictingCommit = {
+      v: 1,
+      ref: "",
+      steps: [
+        {
+          stepType: "replace",
+          from: wordEnd,
+          to: sentenceEnd,
+          slice: { content: [] },
+        },
+      ],
+    };
+
+    const tr2 = receiveCommitTransaction(
+      stateWithLocalChanges,
+      conflictingCommit
+    );
+
+    const localSteps = collab.getState(stateWithLocalChanges).localSteps;
+    const commitStep = Step.fromJSON(schema, conflictingCommit.steps[0]);
+
+    expect(tr2.docs[0]).toEqual(doc(p("Test doc!")));
+    expect(tr2.docs[1]).toEqual(doc(p("Test document!")));
+    expect(tr2.docs[2]).toEqual(doc(p("Test document")));
+    expect(tr2.docs[3]).toEqual(doc(p("Test")));
+    expect(tr2.doc).toEqual(doc(p("Test!")));
+    expect(tr2.steps).toEqual([
+      localSteps[1].inverted,
+      localSteps[0].inverted,
+      commitStep,
+      localSteps[0].step.map(commitStep.getMap()),
+    ]);
+  });
 });
