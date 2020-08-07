@@ -22,7 +22,7 @@ module Collab
       ::Collab::JS.document_to_html(self.content, schema_name: schema_name).tap do |serialized_html|
         Thread.new do # use a thread to prevent deadlocks and avoid incuring the cost of an inline-write
           self.with_lock do
-            self.update_attribute(:serialized_html, serialized_html) if serialized_version == self.version and self.serialized_html.nil?
+            self.update_attribute(:serialized_html, serialized_html) if serialized_version == self.document_version and self.serialized_html.nil?
           end
         end
       end
