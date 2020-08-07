@@ -34,7 +34,7 @@ export class InflightCommit<S extends Schema> {
     let bytes = new Uint32Array(2);
 
     if (typeof window !== "undefined") {
-      window.crypto.getRandomValues(bytes);
+      bytes = window.crypto.getRandomValues(bytes);
     } else {
       bytes = require("crypto").randomBytes(bytes.byteLength);
     }
