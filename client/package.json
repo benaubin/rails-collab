@@ -33,7 +33,8 @@
     "prosemirror-transform": "^1.2.7",
     "rollup": "^2.23.0",
     "ts-jest": "^26.1.4",
-    "typescript": "^3.9.7"
+    "typescript": "^3.9.7",
+    "prosemirror-view": "^1.15.2"
   },
   "dependencies": {
     "prosemirror-test-builder": "^1.0.3"
