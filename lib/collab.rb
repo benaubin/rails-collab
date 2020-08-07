@@ -6,7 +6,7 @@ require "collab/engine"
 module Collab
   autoload "Channel", "collab/channel"
   autoload "HasCollaborativeDocument", "collab/has_collaborative_document"
-  autoload "DocumentSelection", "collab/selection"
+  # autoload "DocumentSelection", "collab/selection"
   autoload "HasTrackedDocumentPositions", "collab/has_tracked_document_positions"
   
   module Models

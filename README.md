@@ -33,7 +33,7 @@ module.exports.plainText = new Schema({
 
 ```sh
 bundle add collab
-yarn add rails-collab-server prosemirror-model prosemirror-transform [your-schema-package]
+yarn add @pmcp/authority prosemirror-model prosemirror-transform [your-schema-package]
 ```
 
 3. Generate the initalizer and migration
@@ -64,7 +64,7 @@ end
 8. Install the client library
 
 ```sh
-yarn add rails-collab [your-schema-package]
+yarn add prosemirror-collab-plus rails-collab [your-schema-package]
 ```
 
 9. Add the railsCollab plugin to your ProseMirror view:

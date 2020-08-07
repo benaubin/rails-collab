@@ -73,7 +73,7 @@ module Collab
 
       private
       def open_node
-        IO.popen(["node", "-e", "require('rails-collab-server')"], "r+")
+        IO.popen(["node", "-e", "require('@pmcp/authority/dist/rpc')"], "r+")
       end
     end
 

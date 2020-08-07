@@ -845,6 +845,16 @@
   resolved "https://registry.yarnpkg.com/@csstools/convert-colors/-/convert-colors-1.4.0.tgz#ad495dc41b12e75d588c6db8b9834f08fa131eb7"
   integrity sha512-5a6wqoJV/xEdbRNKVo6I4hO3VjyDq//8q2f9I6PBAvMesJHFauXDorcNCsr9RzvsZnaWi5NYCcfyqP1QeFHFbw==
 
+"@pmcp/authority@^0.5.1":
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/@pmcp/authority/-/authority-0.5.1.tgz#b3443d7554dd60dc2e8e192043f52df6614e31f7"
+  integrity sha512-utHUznQ0c0QF0WM7EDw6lq+FUIYzPls9BiaSAjT27PC17Eimv6NJpfAah7zRREdHIOL1m2SJKCuXZiWRI1RSVA==
+  dependencies:
+    jsdom "^16.3.0"
+    prosemirror-model "^1.11.0"
+    prosemirror-transform "^1.2.7"
+    source-map-support "^0.5.19"
+
 "@rails/webpacker@5.1.1":
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/@rails/webpacker/-/webpacker-5.1.1.tgz#3c937aa719e46341f037a3f37349ef58085950df"
@@ -5958,6 +5968,13 @@ promise-inflight@^1.0.1:
   resolved "https://registry.yarnpkg.com/promise-inflight/-/promise-inflight-1.0.1.tgz#98472870bf228132fcbdd868129bad12c3c029e3"
   integrity sha1-mEcocL8igTL8vdhoEputEsPAKeM=
 
+prosemirror-collab-plus@^0.5.5:
+  version "0.5.5"
+  resolved "https://registry.yarnpkg.com/prosemirror-collab-plus/-/prosemirror-collab-plus-0.5.5.tgz#c5536faf37475739b30bbc33ca2566ed43ce6935"
+  integrity sha512-zSO6vTau7NWhpc3tshs/ze++3bVjcDcIEHLy+tniyLGdYOHeiSBTvRRPqxLdtt95gzUCMHaf/GPEKn0NYixTrw==
+  dependencies:
+    prosemirror-test-builder "^1.0.3"
+
 prosemirror-commands@^1.0.0:
   version "1.1.4"
   resolved "https://registry.yarnpkg.com/prosemirror-commands/-/prosemirror-commands-1.1.4.tgz#991563e67623acab4f8c510fad1570f8b4693780"
@@ -6043,7 +6060,7 @@ prosemirror-model@^1.0.0, prosemirror-model@^1.1.0, prosemirror-model@^1.11.0, p
   dependencies:
     orderedmap "^1.1.0"
 
-prosemirror-schema-basic@^1.1.2:
+prosemirror-schema-basic@^1.0.0, prosemirror-schema-basic@^1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/prosemirror-schema-basic/-/prosemirror-schema-basic-1.1.2.tgz#4bde5c339c845e0d08ec8fe473064e372ca51ae3"
   integrity sha512-G4q8WflNsR1Q33QAV4MQO0xWrHLOJ+BQcKswGXMy626wlQj6c/1n1v4eC9ns+h2y1r/fJHZEgSZnsNhm9lbrDw==
@@ -6065,6 +6082,15 @@ prosemirror-state@^1.0.0, prosemirror-state@^1.2.2, prosemirror-state@^1.3.3:
   dependencies:
     prosemirror-model "^1.0.0"
     prosemirror-transform "^1.0.0"
+
+prosemirror-test-builder@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/prosemirror-test-builder/-/prosemirror-test-builder-1.0.3.tgz#9706b6e021efe82830b479797923d835f4ca12a3"
+  integrity sha512-VlRA3uWaOtf+tapHg0Q83fKGZbmLXdAsjskiJs3OyOvb/E/O7gOIMxrfFosa6YeqMePQHWAMM0uoOZQFLtX0dQ==
+  dependencies:
+    prosemirror-model "^1.0.0"
+    prosemirror-schema-basic "^1.0.0"
+    prosemirror-schema-list "^1.0.0"
 
 prosemirror-transform@^1.0.0, prosemirror-transform@^1.1.0, prosemirror-transform@^1.2.7:
   version "1.2.7"
@@ -6195,20 +6221,10 @@ querystringify@^2.1.1:
   resolved "https://registry.yarnpkg.com/querystringify/-/querystringify-2.1.1.tgz#60e5a5fd64a7f8bfa4d2ab2ed6fdf4c85bad154e"
   integrity sha512-w7fLxIRCRT7U8Qu53jQnJyPkYZIaR4n5151KMfcJlO/A9397Wxb1amJvROTK6TOnp7PfoAmg/qXiNHI+08jRfA==
 
-rails-collab-server@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/rails-collab-server/-/rails-collab-server-0.3.0.tgz#f3e0944dbd590b8aff8e6e2f68f33879512a527f"
-  integrity sha512-BdHWpuo0jjyP0moSO90u8Hoe5t+sUm8AWu9qpBKE0ODcqqRbdcjcjdQV5KnXyHqkLja6Z7E3NREA+HKdpz3x8A==
-  dependencies:
-    jsdom "^16.3.0"
-    source-map-support "^0.5.19"
-
-rails-collab@^0.3.2:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/rails-collab/-/rails-collab-0.3.2.tgz#64d5a816119eee372c7f7511ce2515645e836f77"
-  integrity sha512-qWBiB6N3XVMlF+bI/Guy4AAsUjXs7zqd5db/Nh0tfKWZ/YMPebmCR9D9vRzUIIEizdgZDHHy/UFOkhbKgnDa3g==
-  dependencies:
-    lodash "^4.17.19"
+rails-collab@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/rails-collab/-/rails-collab-0.5.0.tgz#9d176efbf2f6ae04a196ed2e38eda661973d2a64"
+  integrity sha512-YMb16SaneLDqosdLr5t0DOVra8p/I6l+tXmdJi01aEO3KVoWLwLyao9tWEh4EEOFLcjyPziuNxfPeHflUVQrlA==
 
 randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5, randombytes@^2.1.0:
   version "2.1.0"

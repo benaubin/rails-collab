@@ -24,21 +24,21 @@ module Collab
       @document.apply_commit(data)
     end
 
-    def select(data)
-      return unless defined?(_select)
+    # def select(data)
+    #   return unless defined?(_select)
 
-      version    = data["v"]&.to_i
-      anchor_pos = data["anchor"]&.to_i
-      head_pos   = data["head"]&.to_i
+    #   version    = data["v"]&.to_i
+    #   anchor_pos = data["anchor"]&.to_i
+    #   head_pos   = data["head"]&.to_i
 
-      return unless version && @document.possibly_saved_version?(version) && anchor_pos && head_pos
+    #   return unless version && @document.possibly_saved_version?(version) && anchor_pos && head_pos
 
-      @document.resolve_selection(anchor_pos, head_pos, version: version) do |selection|
-        _select selection
-      end
+    #   @document.resolve_selection(anchor_pos, head_pos, version: version) do |selection|
+    #     _select selection
+    #   end
 
-      transmit({ack: "select"})
-    end
+    #   transmit({ack: "select"})
+    # end
 
     def unsubscribed
       stop_all_streams # this may not be needed
