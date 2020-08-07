@@ -1,6 +1,6 @@
 import { InflightCommit } from "../src/inflight-commit";
 import { EditorState } from "prosemirror-state";
-import { schema, doc, p, strong } from "prosemirror-test-builder";
+import { schema, doc, p } from "prosemirror-test-builder";
 import { railsCollab } from "../src";
 import { CollabNetworkAdapter } from "../src/network";
 import { receiveCommitTransaction } from "../src/receive-commit";
@@ -54,6 +54,10 @@ describe(receiveCommitTransaction, () => {
     expect(tr.steps).toEqual(commitSteps);
     expect(tr.doc).toEqual(doc(p("Tested document")));
     expect(tr.getMeta(pluginKey).syncedVersion).toBe(1);
+
+    expect(tr.getMeta(pluginKey).lastSyncedDoc).toEqual(
+      doc(p("Tested document"))
+    );
   });
 
   test("receiving an unrelated commit on the original document while commit inflight", () => {
@@ -83,6 +87,10 @@ describe(receiveCommitTransaction, () => {
         originalInflightCommit.ref
       )
     );
+
+    expect(tr2.getMeta(pluginKey).lastSyncedDoc).toEqual(
+      doc(p("Tested document"))
+    );
   });
 
   test("receiving an commit confirmation", () => {
@@ -102,6 +110,11 @@ describe(receiveCommitTransaction, () => {
     expect(tr2.doc).toEqual(doc(p("Test document!")));
 
     expect(tr2.getMeta(pluginKey).inflightCommit).toBeUndefined();
+
+    expect(tr2.getMeta(pluginKey).lastSyncedDoc).toEqual(
+      doc(p("Test document!"))
+    );
+    expect(tr2.getMeta(pluginKey).lastSyncedDoc).toBe(state1.doc);
   });
 
   test("receiving an commit on the original document while commit inflight & local changes", () => {
@@ -140,6 +153,10 @@ describe(receiveCommitTransaction, () => {
         1,
         originalInflightCommit.ref
       )
+    );
+
+    expect(tr3.getMeta(pluginKey).lastSyncedDoc).toEqual(
+      doc(p("Tested document"))
     );
 
     expect(tr3.getMeta(pluginKey).localSteps).toEqual([

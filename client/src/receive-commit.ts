@@ -33,25 +33,29 @@ export function receiveCommitTransaction<S extends Schema>(
   tr.setMeta(key, state);
   tr.setMeta("addToHistory", false);
 
-  let unsyncedMapping: Mapping = new Mapping();
   // The mapping for this commit from the previous commit
   let commitMapping!: Mapping;
 
   state.syncedVersion += 1;
 
-  state.localSteps = rebaseSteps(tr, state.localSteps, () => {
-    if (state.inflightCommit) {
-      if (commit.ref === state.inflightCommit.ref) {
-        // We have a commit in flight and this is its confirmation
-        commitMapping = new Mapping(
-          state.inflightCommit.steps.map(({ step }) => step.getMap())
-        );
+  if (state.inflightCommit && commit.ref === state.inflightCommit.ref) {
+    // This is a confirmation of our inflight commit. Our document is current, no need to rebase.
+    commitMapping = new Mapping(
+      state.inflightCommit.steps.map(({ step }) => step.getMap())
+    );
 
-        state.inflightCommit = undefined;
-        // Set lastSyncedDoc before redoing the localSteps
-        state.lastSyncedDoc = tr.doc;
-      } else {
-        // We have a commit inflight, but we need to rebase it over the one we just received
+    state.inflightCommit = undefined;
+
+    // Set lastSyncedDoc to the doc prior to the local steps
+    state.lastSyncedDoc =
+      state.localSteps.length > 0 ? state.localSteps[0].priorDoc : tr.doc;
+  } else {
+    let unsyncedMapping: Mapping = new Mapping();
+
+    state.localSteps = rebaseSteps(tr, state.localSteps, () => {
+      if (state.inflightCommit) {
+        // We have a commit inflight (this commit is not its confirmation),
+        // so we need to rebase the inflight commit over the commit we just received
         const rebasedSteps = rebaseSteps(tr, state.inflightCommit.steps, () => {
           // Apply the steps in the commit we just received
           commitMapping = applyCommitSteps(tr, editorState.schema, commit);
@@ -68,16 +72,18 @@ export function receiveCommitTransaction<S extends Schema>(
           state.syncedVersion,
           state.inflightCommit.ref
         );
+      } else {
+        // Super simple if we don't have a commit inflight, just apply the steps in this commit
+        commitMapping = applyCommitSteps(tr, editorState.schema, commit);
+        state.lastSyncedDoc = tr.doc;
       }
-    } else {
-      // Super simple if we don't have a commit inflight, just apply the steps in this commit
-      commitMapping = applyCommitSteps(tr, editorState.schema, commit);
-      state.lastSyncedDoc = tr.doc;
-    }
-  });
+    });
 
-  for (const { step } of state.localSteps)
-    unsyncedMapping.appendMap(step.getMap());
+    for (const { step } of state.localSteps)
+      unsyncedMapping.appendMap(step.getMap());
+
+    state.unsyncedMapping = unsyncedMapping;
+  }
 
   state.versionMappings = state.versionMappings.slice(
     0,
