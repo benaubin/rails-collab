@@ -117,6 +117,36 @@ describe(receiveCommitTransaction, () => {
     expect(tr2.getMeta(pluginKey).lastSyncedDoc).toBe(state1.doc);
   });
 
+  test("receiving an commit confirmation with local steps", () => {
+    const tr1 = state.tr;
+    tr1.insertText("!", sentenceEnd);
+
+    const state1 = state.apply(tr1);
+    const inflightCommit = InflightCommit.fromState(state1);
+    if (!inflightCommit) fail();
+
+    const sendable = inflightCommit.sendable();
+    const received = { ...sendable, v: 1 };
+
+    const tr2 = state1.tr;
+
+    tr2.insertText(" Now with local changes.", sentenceEnd + 1);
+
+    const state2 = state1.apply(tr2);
+
+    const tr3 = receiveCommitTransaction(state2, received);
+    expect(tr3.steps).toHaveLength(0);
+
+    expect(tr3.doc).toEqual(doc(p("Test document! Now with local changes.")));
+
+    expect(tr3.getMeta(pluginKey).inflightCommit).toBeUndefined();
+
+    expect(tr3.getMeta(pluginKey).lastSyncedDoc).toEqual(
+      doc(p("Test document!"))
+    );
+    expect(tr3.getMeta(pluginKey).lastSyncedDoc).toBe(state1.doc);
+  });
+
   test("receiving an commit on the original document while commit inflight & local changes", () => {
     const tr1 = state.tr;
     tr1.insertText("!", sentenceEnd);
