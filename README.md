@@ -2,6 +2,8 @@
 
 Real-time collaborative document editing for Ruby on Rails using ActionCable & Prosemirror based on operational transforms.
 
+> This is a very early stage gem that is not ready for production use (yet). The code is untested & documentation may be wrong.
+
 ## How it works
 
 The collab gem exposes an ActionCable channel (`CollabDocumentChannel`) enabling users to start a real-time editing session.
