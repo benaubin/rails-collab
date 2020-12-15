@@ -2,7 +2,7 @@
 
 Real-time collaborative document editing for Ruby on Rails using ActionCable & Prosemirror based on operational transforms.
 
-> This is a very early stage gem that is not ready for production use (yet). The code is untested & documentation may be wrong.
+> This gem isn't recommended for production use, as the concurrency method for updating documents will strugle under high load.
 
 ## How it works
 
