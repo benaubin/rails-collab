@@ -4,6 +4,8 @@ Real-time collaborative document editing for Ruby on Rails using ActionCable & P
 
 > This gem isn't recommended for production use, as the concurrency method for updating documents will strugle under high load.
 
+Client library: https://github.com/benaubin/prosemirror-collab-plus
+
 ## How it works
 
 The collab gem exposes an ActionCable channel (`CollabDocumentChannel`) enabling users to start a real-time editing session.
